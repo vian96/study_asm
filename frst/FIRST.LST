@@ -1,0 +1,61 @@
+Turbo Assembler	 Version 4.1	    02/12/22 13:30:09	    Page 1
+first.asm
+
+
+
+      1	0000			     .model tiny
+      2
+      3	      =0009		     PUTS equ 09h
+      4
+      5	0000			     .code
+      6				     org 100h
+      7	0100			     Start:
+      8					 ; calling PUTS(msg)
+      9	0100  B4 09			 mov ah, PUTS
+     10	0102  BA 010Er			 mov dx, offset	msg
+     11	0105  CD 21			 int 21h
+     12
+     13					 ; return 0
+     14	0107  B8 4C00			 mov ax, 4c00h
+     15	010A  CD 21			 int 21h
+     16
+     17	010C  90			 nop
+     18	010D  90			 nop
+     19	010E  72 75 6C 65 5A 5A	5A+	 msg db	"ruleZZZ\n$"
+     20	      5C 6E 24
+     21
+     22				     end Start
+Turbo Assembler	 Version 4.1	    02/12/22 13:30:09	    Page 2
+Symbol Table
+
+
+
+
+Symbol Name			  Type	 Value
+
+??DATE				  Text	 "02/12/22"
+??FILENAME			  Text	 "first	  "
+??TIME				  Text	 "13:30:09"
+??VERSION			  Number 040A
+@32BIT				  Text	 0
+@CODE				  Text	 DGROUP
+@CODESIZE			  Text	 0
+@CPU				  Text	 0101H
+@CURSEG				  Text	 _TEXT
+@DATA				  Text	 DGROUP
+@DATASIZE			  Text	 0
+@FILENAME			  Text	 FIRST
+@INTERFACE			  Text	 000H
+@MODEL				  Text	 1
+@STACK				  Text	 DGROUP
+@WORDSIZE			  Text	 2
+MSG				  Byte	 DGROUP:010E
+PUTS				  Number 0009
+START				  Near	 DGROUP:0100
+
+Groups & Segments		  Bit Size Align  Combine Class
+
+DGROUP				  Group
+  _DATA				  16  0000 Word	  Public  DATA
+  _TEXT				  16  0118 Word	  Public  CODE
+

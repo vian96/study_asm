@@ -1,4 +1,4 @@
-Turbo Assembler	 Version 4.1	    02/14/22 18:35:08	    Page 1
+Turbo Assembler	 Version 4.1	    02/19/22 15:25:32	    Page 1
 sec.asm
 
 
@@ -60,7 +60,7 @@ sec.asm
      55				     ;
      56				     ; CHANGED:	ax, cx,	si, di,	es
      57				     ;------------------------------------------------
-Turbo Assembler	 Version 4.1	    02/14/22 18:35:08	    Page 2
+Turbo Assembler	 Version 4.1	    02/19/22 15:25:32	    Page 2
 sec.asm
 
 
@@ -100,38 +100,38 @@ sec.asm
      90
      91	013B			     main:
      92					 ; if no args go to default
-     93	013B  A1 0080			 mov ax, ds:[80h]
-     94	013E  3D 0000			 cmp ax, 0h
-     95	0141  74 11			 je @@default_frame
+     93	013B  A0 0080			 mov al, ds:[80h]
+     94	013E  3C 00			 cmp al, 0h
+     95	0140  74 10			 je @@default_frame
      96
-     97	0143  A1 0082			 mov ax, ds:[82h]
-     98	0146  3D 0030			 cmp ax, '0'
-     99	0149  74 09			 je @@default_frame
+     97	0142  A0 0082			 mov al, ds:[82h]
+     98	0145  3C 30			 cmp al, '0'
+     99	0147  74 09			 je @@default_frame
     100
     101					 ; TODO	add check for size of the second arg
     102
-    103	014B  BE 0084			 mov si, 84h
-    104	014E  E8 FFBA			 call draw_frame
-    105	0151  EB 07 90			 jmp @@ret
+    103	0149  BE 0084			 mov si, 84h
+    104	014C  E8 FFBC			 call draw_frame
+    105	014F  EB 07 90			 jmp @@ret
     106
-    107	0154			     @@default_frame:
-    108	0154  BE 015Fr			 mov si, offset	frame_borders
-    109	0157  E8 FFB1			 call draw_frame
+    107	0152			     @@default_frame:
+    108	0152  BE 015Dr			 mov si, offset	frame_borders
+    109	0155  E8 FFB3			 call draw_frame
     110
-    111	015A			     @@ret:  ; exit 0
-    112	015A  B8 4C00			 mov ax, 4c00h
-    113	015D  CD 21			 int 21h
+    111	0158			     @@ret:  ; exit 0
+    112	0158  B8 4C00			 mov ax, 4c00h
+    113	015B  CD 21			 int 21h
     114
-Turbo Assembler	 Version 4.1	    02/14/22 18:35:08	    Page 3
+Turbo Assembler	 Version 4.1	    02/19/22 15:25:32	    Page 3
 sec.asm
 
 
 
-    115	015F  2B 2D 2B 7C 20 7C	2B+	 frame_borders db "+-+|	|+-+"
+    115	015D  2B 2D 2B 7C 20 7C	2B+	 frame_borders db "+-+|	|+-+"
     116	      2D 2B
     117
     118				     end start
-Turbo Assembler	 Version 4.1	    02/14/22 18:35:08	    Page 4
+Turbo Assembler	 Version 4.1	    02/19/22 15:25:32	    Page 4
 Symbol Table
 
 
@@ -139,15 +139,15 @@ Symbol Table
 
 Symbol Name			  Type	 Value
 
-??DATE				  Text	 "02/14/22"
+??DATE				  Text	 "02/19/22"
 ??FILENAME			  Text	 "sec	  "
-??TIME				  Text	 "18:35:08"
+??TIME				  Text	 "15:25:32"
 ??VERSION			  Number 040A
 @32BIT				  Text	 0
-@@DEFAULT_FRAME			  Near	 DGROUP:0154
+@@DEFAULT_FRAME			  Near	 DGROUP:0152
 @@LINES				  Near	 DGROUP:011E
 @@LINE_OFFSET			  Number 0074
-@@RET				  Near	 DGROUP:015A
+@@RET				  Near	 DGROUP:0158
 @CODE				  Text	 DGROUP
 @CODESIZE			  Text	 0
 @CPU				  Text	 0101H
@@ -162,7 +162,7 @@ Symbol Name			  Type	 Value
 COLOR				  Number 0070
 DRAW_FRAME			  Near	 DGROUP:010B
 DRAW_LINE			  Near	 DGROUP:0103
-FRAME_BORDERS			  Byte	 DGROUP:015F
+FRAME_BORDERS			  Byte	 DGROUP:015D
 LINE_LEN			  Number 0050
 MAIN				  Near	 DGROUP:013B
 SIZE_X				  Number 0014
@@ -175,5 +175,5 @@ Groups & Segments		  Bit Size Align  Combine Class
 
 DGROUP				  Group
   _DATA				  16  0000 Word	  Public  DATA
-  _TEXT				  16  0168 Word	  Public  CODE
+  _TEXT				  16  0166 Word	  Public  CODE
 

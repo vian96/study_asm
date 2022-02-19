@@ -1,4 +1,4 @@
-Turbo Assembler	 Version 4.1	    02/18/22 24:12:55	    Page 1
+Turbo Assembler	 Version 4.1	    02/19/22 16:12:30	    Page 1
 str.asm
 
 
@@ -18,7 +18,7 @@ str.asm
      13				     ;------------------------------------------------
      14
      15	0100			     start:
-     16	0100  E9 0080		     jmp main
+     16	0100  E9 00C2		     jmp main
      17
      18				     ;------------------------------------------------
      19				     ; STRLEN
@@ -60,7 +60,7 @@ str.asm
      53					     ; needed character
      54	0113  38 14			     cmp ds:[si], dl
      55	0115  74 03			     je	@@ret
-Turbo Assembler	 Version 4.1	    02/18/22 24:12:55	    Page 2
+Turbo Assembler	 Version 4.1	    02/19/22 16:12:30	    Page 2
 str.asm
 
 
@@ -75,7 +75,7 @@ str.asm
      63
      64				     ;------------------------------------------------
      65				     ; STRNCPY
-     66				     ; Copies cx symbols from si to di
+     66				     ; Copies no more than cx symbols from si to di
      67				     ;	 si - ptr of source
      68				     ;	 di - ptr of destination
      69				     ;	 cx - num of symbols to	copy
@@ -122,7 +122,7 @@ str.asm
     108	0134  46			     inc si
     109	0135  47			     inc di
     110	0136  E2 F1			 loop @@loop
-Turbo Assembler	 Version 4.1	    02/18/22 24:12:55	    Page 3
+Turbo Assembler	 Version 4.1	    02/19/22 16:12:30	    Page 3
 str.asm
 
 
@@ -136,7 +136,7 @@ str.asm
     117
     118				     ;------------------------------------------------
     119				     ; ATOI
-    120				     ; Calculates number at si with base bl
+    120				     ; Calculates unsigned number at si	with base cx
     121				     ;	 si - ptr of str
     122				     ;	 cx - base
     123				     ;	 bx = 0
@@ -147,98 +147,203 @@ str.asm
     128	013D				 @@loop:
     129					     ; returns if end of str
     130	013D  8A 04			     mov al, ds:[si] ; this is needed because we should	compare	only one byte but not a	word
-    131	013F  B4 00			     mov ah, 0
-    132	0141  3D 0024			     cmp ax, '$'
-    133	0144  74 12			     je	@@ret
-    134
-    135	0146  8B C1			     mov ax, cx
-    136	0148  F7 E3			     mul bx	 ; ax*=bx, dx is filled	with overflow of mul
-    137	014A  8B D8			     mov bx, ax
-    138	014C  B6 00			     mov dh, 0
-    139
-    140	014E  8A 14			     mov dl, ds:[si]
-    141	0150  80 EA 30			     sub dl, '0'
-    142	0153  03 DA			     add bx, dx
+    131	013F  3C 24			     cmp al, '$'
+    132	0141  74 12			     je	@@ret
+    133
+    134	0143  8B C1			     mov ax, cx
+    135	0145  F7 E3			     mul bx	 ; ax*=bx, dx is filled	with overflow of mul
+    136	0147  8B D8			     mov bx, ax
+    137
+    138					     ; is it okay to do	like this?
+    139	0149  B6 00			     mov dh, 0
+    140	014B  8A 14			     mov dl, ds:[si]
+    141	014D  80 EA 30			     sub dl, '0'
+    142	0150  03 DA			     add bx, dx
     143
-    144	0155  46			     inc si
-    145	0156  EB E5			 jmp @@loop
+    144	0152  46			     inc si
+    145	0153  EB E8			 jmp @@loop
     146
-    147	0158			     @@ret:
-    148	0158  C3			 ret
-    149	0159			     atoi endp
+    147	0155			     @@ret:
+    148	0155  C3			 ret
+    149	0156			     atoi endp
     150
     151				     ;------------------------------------------------
-    152				     ; ITOA
-    153				     ; Translates bx number to str pointed by di
-    154				     ; IT WILL NOT BE '$' TERMINATED
-    155				     ;	 di - ptr of str to be written
-    156				     ;	 cx - base
-    157				     ;	 ax - number to	be translated
-    158				     ; RET: PROBABLY di	- ptr to the symbol next to last number	sym
-    159				     ; CHANGED:	bx, dx
+    152				     ; ATOI2N
+    153				     ; Calculates unsigned number at si	with base 2^cl
+    154				     ;	 si - ptr of str
+    155				     ;	 cl - power of base
+    156				     ;	 bx = 0
+    157				     ;	 ah = 0
+    158				     ; RET: bx - calculated num
+    159				     ; CHANGED:	si, ax
     160				     ;------------------------------------------------
-    161	0159			     itoa proc
-    162	0159  8B F7			 mov si, di
-    163
-    164	015B				 @@loop:
-    165	015B  BA 0000			     mov dx, 0
-    166	015E  F7 F1			     div cx	 ; ax =	dx:ax div cx, dx = dx:ax % cx
-    167	0160  83 C2 30			     add dx, '0'
-Turbo Assembler	 Version 4.1	    02/18/22 24:12:55	    Page 4
+    161	0156			     atoi2n proc
+    162	0156				 @@loop:
+    163					     ; returns if end of str
+    164	0156  8A 04			     mov al, ds:[si] ; this is needed because we should	compare	only one byte but not a	word
+    165	0158  3C 24			     cmp al, '$'
+    166	015A  74 09			     je	@@ret
+    167
+Turbo Assembler	 Version 4.1	    02/19/22 16:12:30	    Page 4
 str.asm
 
 
 
-    168
-    169	0163  89 15			     mov ds:[di], dx
-    170	0165  47			     inc di
+    168	015C  D3 E3			     shl bx, cl	     ; bx *= 2^cl
+    169	015E  2C 30			     sub al, '0'
+    170	0160  03 D8			     add bx, ax
     171
-    172	0166  3D 0000			     cmp ax, 0
-    173	0169  74 02			     je	@@end_loop
-    174	016B  EB EE			 jmp @@loop
-    175
-    176	016D				 @@end_loop:
-    177	016D  8B CF			 mov cx, di
-    178	016F  2B CE			 sub cx, si
-    179	0171  D1 E9			 shr cx, 1
-    180	0173  C7 05 0024		 mov ds:[di], '$'
-*Warning* str.asm(180) Argument	needs type override
-    181	0177  4F			 dec di
-    182
-    183	0178				 @@reverse:
-    184	0178  8A 05			     mov al, ds:[di]
-    185	017A  86 04			     xchg ds:[si], al
-    186	017C  88 05			     mov ds:[di], al
-    187
-    188	017E  4F			     dec di
-    189	017F  46			     inc si
-    190	0180  E2 F6			 loop @@reverse
-    191
-    192	0182			     @@ret:
-    193	0182  C3			 ret
-    194	0183			     itoa endp
-    195
-    196
-    197	0183			     main:
-    198	0183  BF 01A5r			 mov di, offset	end_of_file
-    199	0186  B9 000A			 mov cx, 10
-    200	0189  B8 3039			 mov ax, 12345
-    201	018C  E8 FFCA			 call itoa
-    202
-    203	018F  B4 09			 mov ah, PUTS
-    204	0191  BA 01A5r			 mov dx, offset	end_of_file
-    205	0194  CD 21			 int 21h
-    206
-    207	0196			     @@ret:  ; exit 0
-    208	0196  B8 4C00			 mov ax, 4c00h
-    209	0199  CD 21			 int 21h
-    210
-    211	019B  31 30 30 24		 text db "100$"
-    212	019F  31 32 33 34 37 24		 secnd db "12347$"
-    213	01A5  00			 end_of_file db	0
-    214
-    215				     end start
-Turbo Assembler	 Version 4.1	    02/18/22 24:12:55	    Page 5
+    172	0162  46			     inc si
+    173	0163  EB F1			 jmp @@loop
+    174
+    175	0165			     @@ret:
+    176	0165  C3			 ret
+    177	0166			     atoi2n endp
+    178
+    179				     ;------------------------------------------------
+    180				     ; ITOA
+    181				     ; Translates unsigned bx number to	str pointed by di with base cx and places $ at the end
+    182				     ;	 di - ptr of str to be written
+    183				     ;	 cx - base
+    184				     ;	 ax - number to	be translated
+    185				     ; RET: PROBABLY di	- ptr to the symbol next to last number	sym
+    186				     ; CHANGED:	bx, dx
+    187				     ;------------------------------------------------
+    188	0166			     itoa proc
+    189					 ; TODO	check if number	is zero
+    190					 ; TODO	check if it works properly on 1	integer	number
+    191	0166  8B F7			 mov si, di
+    192
+    193	0168				 @@loop:
+    194	0168  BA 0000			     mov dx, 0
+    195	016B  F7 F1			     div cx	 ; ax =	dx:ax div cx, dx = dx:ax % cx
+    196	016D  8B DA			     mov bx, dx
+    197	016F  8A 97 0200r		     mov dl, ds:[bx + offset XlatTable]
+    198
+    199	0173  88 15			     mov ds:[di], dl
+    200	0175  47			     inc di
+    201
+    202	0176  3D 0000			     cmp ax, 0
+    203	0179  74 02			     je	@@end_loop
+    204	017B  EB EB			 jmp @@loop
+    205
+    206	017D				 @@end_loop:
+    207	017D  8B CF			 mov cx, di
+    208	017F  2B CE			 sub cx, si
+    209	0181  D1 E9			 shr cx, 1
+    210	0183  C7 05 0024		 mov ds:[di], '$'
+*Warning* str.asm(210) Argument	needs type override
+    211	0187  4F			 dec di
+    212
+    213	0188				 @@reverse:
+    214	0188  8A 05			     mov al, ds:[di]
+    215	018A  86 04			     xchg ds:[si], al
+    216	018C  88 05			     mov ds:[di], al
+    217
+    218	018E  4F			     dec di
+    219	018F  46			     inc si
+    220	0190  E2 F6			 loop @@reverse
+    221
+    222	0192			     @@ret:
+    223	0192  C3			 ret
+Turbo Assembler	 Version 4.1	    02/19/22 16:12:30	    Page 5
+str.asm
+
+
+
+    224	0193			     itoa endp
+    225
+    226				     ;------------------------------------------------
+    227				     ; ITOA2N
+    228				     ; Translates unsigned bx number to	str pointed by di with base 2^cl and places $ at the end
+    229				     ;	 di - ptr of str to be written
+    230				     ;	 cl - power of base
+    231				     ;	 ax - number to	be translated
+    232				     ;	 bh = 0
+    233				     ; CHANGED:	bx, dx
+    234				     ;------------------------------------------------
+    235	0193			     itoa2n proc
+    236					 ; TODO	check if number	is zero
+    237					 ; TODO	check if it works properly on 1	integer	number
+    238	0193  8B F7			 mov si, di
+    239	0195  BA 0001			 mov dx, 1
+    240	0198  D3 E2			 shl dx, cl
+    241	019A  4A			 dec dx	     ; dx = 2^cl - 1
+    242
+    243	019B				 @@loop:
+    244	019B  8B D8			     mov bx, ax
+    245	019D  23 DA			     and bx, dx	     ; bx = ax % 2^cl
+    246	019F  D3 E8			     shr ax, cl	     ; ax = ax / 2^cl
+    247
+    248	01A1  8A 9F 0200r		     mov bl, ds:[bx + offset XlatTable]
+    249	01A5  88 1D			     mov ds:[di], bl
+    250	01A7  47			     inc di
+    251
+    252	01A8  3D 0000			     cmp ax, 0
+    253	01AB  74 02			     je	@@end_loop
+    254	01AD  EB EC			 jmp @@loop
+    255
+    256					 ; TODO	is it okay to have copypaste like this?
+    257	01AF				 @@end_loop:
+    258	01AF  8B CF			 mov cx, di
+    259	01B1  2B CE			 sub cx, si
+    260	01B3  D1 E9			 shr cx, 1
+    261	01B5  C7 05 0024		 mov ds:[di], '$'
+*Warning* str.asm(261) Argument	needs type override
+    262	01B9  4F			 dec di
+    263
+    264	01BA				 @@reverse:
+    265	01BA  8A 05			     mov al, ds:[di]
+    266	01BC  86 04			     xchg ds:[si], al
+    267	01BE  88 05			     mov ds:[di], al
+    268
+    269	01C0  4F			     dec di
+    270	01C1  46			     inc si
+    271	01C2  E2 F6			 loop @@reverse
+    272
+    273	01C4			     @@ret:
+    274	01C4  C3			 ret
+    275	01C5			     itoa2n endp
+    276
+    277	01C5			     main:
+    278	01C5  BF 0210r			 mov di, offset	end_of_file
+    279	01C8  B9 0003			 mov cx, 3
+Turbo Assembler	 Version 4.1	    02/19/22 16:12:30	    Page 6
+str.asm
+
+
+
+    280	01CB  B8 0017			 mov ax, 23
+    281	01CE  E8 FFC2			 call itoa2n
+    282
+    283	01D1  BE 0210r			 mov si, offset	end_of_file
+    284	01D4  B9 0003			 mov cx, 3
+    285	01D7  BB 0000			 mov bx, 0
+    286	01DA  B4 00			 mov ah, 0
+    287	01DC  E8 FF77			 call atoi2n
+    288
+    289	01DF  BF 0210r			 mov di, offset	end_of_file
+    290	01E2  B9 000A			 mov cx, 10
+    291	01E5  8B C3			 mov ax, bx
+    292	01E7  E8 FF7C			 call itoa
+    293
+    294	01EA  B4 09			 mov ah, PUTS
+    295	01EC  BA 0210r			 mov dx, offset	end_of_file
+    296	01EF  CD 21			 int 21h
+    297
+    298	01F1			     @@ret:  ; exit 0
+    299	01F1  B8 4C00			 mov ax, 4c00h
+    300	01F4  CD 21			 int 21h
+    301
+    302	01F6  31 30 30 24		 text db "100$"
+    303	01FA  31 32 33 34 37 24		 secnd db "12347$"
+    304	0200  30 31 32 33 34 35	36+	 XlatTable db "0123456789ABCDEF"
+    305	      37 38 39 41 42 43	44+
+    306	      45 46
+    307	0210  00			 end_of_file db	0
+    308
+    309				     end start
+Turbo Assembler	 Version 4.1	    02/19/22 16:12:30	    Page 7
 Symbol Table
 
 
@@ -246,26 +351,32 @@ Symbol Table
 
 Symbol Name			  Type	 Value
 
-??DATE				  Text	 "02/18/22"
+??DATE				  Text	 "02/19/22"
 ??FILENAME			  Text	 "str	  "
-??TIME				  Text	 "24:12:55"
+??TIME				  Text	 "16:12:30"
 ??VERSION			  Number 040A
 @32BIT				  Text	 0
-@@END_LOOP			  Near	 DGROUP:016D
+@@END_LOOP			  Near	 DGROUP:017D
+@@END_LOOP			  Near	 DGROUP:01AF
 @@LOOP				  Near	 DGROUP:0103
 @@LOOP				  Near	 DGROUP:010E
 @@LOOP				  Near	 DGROUP:011B
 @@LOOP				  Near	 DGROUP:0129
 @@LOOP				  Near	 DGROUP:013D
-@@LOOP				  Near	 DGROUP:015B
+@@LOOP				  Near	 DGROUP:0156
+@@LOOP				  Near	 DGROUP:0168
+@@LOOP				  Near	 DGROUP:019B
 @@RET				  Near	 DGROUP:010D
 @@RET				  Near	 DGROUP:011A
 @@RET				  Near	 DGROUP:0128
 @@RET				  Near	 DGROUP:0138
-@@RET				  Near	 DGROUP:0158
-@@RET				  Near	 DGROUP:0182
-@@RET				  Near	 DGROUP:0196
-@@REVERSE			  Near	 DGROUP:0178
+@@RET				  Near	 DGROUP:0155
+@@RET				  Near	 DGROUP:0165
+@@RET				  Near	 DGROUP:0192
+@@RET				  Near	 DGROUP:01C4
+@@RET				  Near	 DGROUP:01F1
+@@REVERSE			  Near	 DGROUP:0188
+@@REVERSE			  Near	 DGROUP:01BA
 @CODE				  Text	 DGROUP
 @CODESIZE			  Text	 0
 @CPU				  Text	 0101H
@@ -278,24 +389,32 @@ Symbol Name			  Type	 Value
 @STACK				  Text	 DGROUP
 @WORDSIZE			  Text	 2
 ATOI				  Near	 DGROUP:013D
-END_OF_FILE			  Byte	 DGROUP:01A5
-ITOA				  Near	 DGROUP:0159
-MAIN				  Near	 DGROUP:0183
+ATOI2N				  Near	 DGROUP:0156
+END_OF_FILE			  Byte	 DGROUP:0210
+ITOA				  Near	 DGROUP:0166
+ITOA2N				  Near	 DGROUP:0193
+MAIN				  Near	 DGROUP:01C5
 PUTS				  Number 0009
-SECND				  Byte	 DGROUP:019F
+SECND				  Byte	 DGROUP:01FA
 START				  Near	 DGROUP:0100
 STRCHR				  Near	 DGROUP:010E
 STRLEN				  Near	 DGROUP:0103
 STRNCMP				  Near	 DGROUP:0129
 STRNCPY				  Near	 DGROUP:011B
-TEXT				  Byte	 DGROUP:019B
+TEXT				  Byte	 DGROUP:01F6
+XLATTABLE			  Byte	 DGROUP:0200
+Turbo Assembler	 Version 4.1	    02/19/22 16:12:30	    Page 8
+Symbol Table
+
+
+
 
 Groups & Segments		  Bit Size Align  Combine Class
 
 DGROUP				  Group
   _DATA				  16  0000 Word	  Public  DATA
-  _TEXT				  16  01A6 Word	  Public  CODE
-Turbo Assembler	 Version 4.1	    02/18/22 24:12:55	    Page 6
+  _TEXT				  16  0211 Word	  Public  CODE
+Turbo Assembler	 Version 4.1	    02/19/22 16:12:30	    Page 9
 Error Summary
 
 
@@ -304,5 +423,6 @@ Error Summary
 *Warning* str.asm(50) Argument needs type override
 *Warning* str.asm(79) Argument needs type override
 *Warning* str.asm(105) Argument	needs type override
-*Warning* str.asm(180) Argument	needs type override
+*Warning* str.asm(210) Argument	needs type override
+*Warning* str.asm(261) Argument	needs type override
 

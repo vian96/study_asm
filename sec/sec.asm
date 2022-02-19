@@ -90,12 +90,12 @@ draw_frame endp
 
 main:
     ; if no args go to default
-    mov ax, ds:[80h]
-    cmp ax, 0h
+    mov al, ds:[80h]
+    cmp al, 0h
     je @@default_frame
     
-    mov ax, ds:[82h]
-    cmp ax, '0' 
+    mov al, ds:[82h]
+    cmp al, '0' 
     je @@default_frame
 
     ; TODO add check for size of the second arg
