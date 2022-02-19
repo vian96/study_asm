@@ -125,14 +125,15 @@ strncmp endp
 ; CHANGED: si, dx, ax
 ;------------------------------------------------
 atoi proc
+    ; TODO handle letters
     @@loop:
         ; returns if end of str
-        mov al, ds:[si] ; this is needed because we should compare only one byte but not a word
+        mov al, ds:[si]     ; this is needed because we should compare only one byte but not a word
         cmp al, '$'
         je @@ret
 
         mov ax, cx
-        mul bx      ; ax*=bx, dx is filled with overflow of mul
+        mul bx              ; ax*=bx, dx is filled with overflow of mul
         mov bx, ax
 
         ; is it okay to do like this?
@@ -161,11 +162,11 @@ atoi endp
 atoi2n proc
     @@loop:
         ; returns if end of str
-        mov al, ds:[si] ; this is needed because we should compare only one byte but not a word
+        mov al, ds:[si]     ; this is needed because we should compare only one byte but not a word
         cmp al, '$'
         je @@ret
 
-        shl bx, cl      ; bx *= 2^cl
+        shl bx, cl          ; bx *= 2^cl
         sub al, '0'
         add bx, ax
 
@@ -182,8 +183,7 @@ atoi2n endp
 ;   di - ptr of str to be written
 ;   cx - base
 ;   ax - number to be translated
-; RET: PROBABLY di - ptr to the symbol next to last number sym
-; CHANGED: bx, dx
+; CHANGED: bx, dx, di, si
 ;------------------------------------------------
 itoa proc
     ; TODO check if number is zero
@@ -192,7 +192,7 @@ itoa proc
 
     @@loop:
         mov dx, 0
-        div cx      ; ax = dx:ax div cx, dx = dx:ax % cx
+        div cx              ; ax = dx:ax div cx, dx = dx:ax % cx
         mov bx, dx
         mov dl, ds:[bx + offset XlatTable]
 
@@ -230,7 +230,7 @@ itoa endp
 ;   cl - power of base
 ;   ax - number to be translated
 ;   bh = 0
-; CHANGED: bx, dx
+; CHANGED: bx, dx, di, si
 ;------------------------------------------------
 itoa2n proc
     ; TODO check if number is zero
@@ -238,12 +238,12 @@ itoa2n proc
     mov si, di
     mov dx, 1
     shl dx, cl
-    dec dx      ; dx = 2^cl - 1
+    dec dx                  ; dx = 2^cl - 1
 
     @@loop:
         mov bx, ax
-        and bx, dx      ; bx = ax % 2^cl
-        shr ax, cl      ; ax = ax / 2^cl
+        and bx, dx          ; bx = ax % 2^cl
+        shr ax, cl          ; ax = ax / 2^cl
 
         mov bl, ds:[bx + offset XlatTable]
         mov ds:[di], bl
