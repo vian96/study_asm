@@ -23,6 +23,7 @@ jmp main
 ; RET: dl - len 
 ; CHANGED: si
 ;------------------------------------------------
+; repne scasb
 strlen proc
     @@loop:
         cmp ds:[si], '$'
@@ -306,5 +307,5 @@ main:
 
 end start
 
-
+; TODO три с строковыми (обязательно стрлен)
 

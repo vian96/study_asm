@@ -88,6 +88,8 @@ draw_frame proc
     ret
 draw_frame endp
 
+; TODO array of ofsset of styles 
+
 main:
     ; if no args go to default
     mov al, ds:[80h]
