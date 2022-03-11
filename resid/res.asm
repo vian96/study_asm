@@ -34,7 +34,14 @@ new09       proc
             in al, 60h      ; get pressed button from keyboard
             cmp al, 2       ; if key is not 1 then do nothing
             je @@start_table
+            
+            cmp al, 3
+            je @@jmp_repair
+            
             jmp @@old_int   ; needed because this label is too far
+
+@@jmp_repair:
+            jmp @@start_repair
 
 @@start_table:
             ; for stosw and lodsw
@@ -120,9 +127,38 @@ new09       proc
             mov di, 2 * ((start_y + 4) * line_len + start_x + 6)
             mov ax, ss:[bp + 6]
             call itoa16_resid
+
+            jmp @@old_int
+
+;------------------------------------------------
+; Puts old data from screen instead of table
+;------------------------------------------------
+@@start_repair:
+            mov ax, cs
+            mov ds, ax
+            mov ax, 0b800h
+            mov es, ax
+
+            mov di, 2*((start_y * line_len) + start_x) ; start of frame
+            mov si, offset old_screen
+
+            mov cx, size_y + 2
+@@copy_screen:
+            push cx
+            mov cx, size_x + 2
+@@copy_sc_line:
+            lodsw
+            stosw
+            loop @@copy_sc_line
+
+            add di, @@line_offset
+            pop cx
+            loop @@copy_screen
+
 @@old_int:
             pop ax bx cx dx ds es di si bp
             popf
+
             db 0eah     ; opcode of jmp far
 old09       dd 0        ; place for ptr to prev int
 
