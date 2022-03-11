@@ -1,0 +1,124 @@
+Turbo Assembler	 Version 4.1	    03/11/22 16:29:38	    Page 1
+itoa16~1.asm
+
+
+
+      1	0000			     .model tiny
+      2	0000			     .code
+      3				     org 100h
+      4
+      5				     locals @@
+      6
+      7	0100			     start:
+      8	0100  E9 0080			 jmp main
+      9
+     10				     ;------------------------------------------------
+     11				     ; ITOA16_RESID
+     12				     ; Translates unsigned bx number to	str pointed by di with base 2^cl for resident purposes
+     13				     ; It doesn't place	\0 or $	at the end
+     14				     ; TODO make program always	fill four symbols
+     15				     ;	 di - ptr of str to be written
+     16				     ;	 ax - number to	be translated
+     17				     ;	 es - segment of memory	to write
+     18				     ; CHANGED:	bx, di
+     19				     ;------------------------------------------------
+     20	0103			     itoa16_resid proc
+     21	0103  8B D8			 mov bx, ax
+     22	0105  D1 EB D1 EB D1 EB	D1+	 shr bx, 12
+     23	      EB D1 EB D1 EB D1	EB+
+     24	      D1 EB D1 EB D1 EB	D1+
+     25	      EB D1 EB
+     26	011D  2E: 8A 9F	0173r		 mov bl, cs:[bx	+ offset XlatTable]
+     27	0122  26: 88 1D			 mov es:[di], bl
+     28	0125  83 C7 02			 add di, 2
+     29
+     30	0128  8B D8			 mov bx, ax
+     31	012A  81 E3 0F00		 and bx, 0F00h
+     32	012E  D1 EB D1 EB D1 EB	D1+	 shr bx, 8
+     33	      EB D1 EB D1 EB D1	EB+
+     34	      D1 EB
+     35	013E  2E: 8A 9F	0173r		 mov bl, cs:[bx	+ offset XlatTable]
+     36	0143  26: 88 1D			 mov es:[di], bl
+     37	0146  83 C7 02			 add di, 2
+     38
+     39	0149  8B D8			 mov bx, ax
+     40	014B  81 E3 00F0		 and bx, 0F0h
+     41	014F  D1 EB D1 EB D1 EB	D1+	 shr bx, 4
+     42	      EB
+     43	0157  2E: 8A 9F	0173r		 mov bl, cs:[bx	+ offset XlatTable]
+     44	015C  26: 88 1D			 mov es:[di], bl
+     45	015F  83 C7 02			 add di, 2
+     46
+     47	0162  8B D8			 mov bx, ax
+     48	0164  83 E3 0F			 and bx, 0Fh
+     49	0167  2E: 8A 9F	0173r		 mov bl, cs:[bx	+ offset XlatTable]
+     50	016C  26: 88 1D			 mov es:[di], bl
+     51	016F  83 C7 02			 add di, 2
+     52
+     53	0172			     @@ret:
+     54	0172  C3			 ret
+     55
+     56	0173  30 31 32 33 34 35	36+	 XlatTable db "0123456789ABCDEF"
+     57	      37 38 39 41 42 43	44+
+Turbo Assembler	 Version 4.1	    03/11/22 16:29:38	    Page 2
+itoa16~1.asm
+
+
+
+     58	      45 46
+     59
+     60	0183			     itoa16_resid endp
+     61
+     62	0183			     main:
+     63	0183  B8 B800			 mov ax, 0b800h
+     64	0186  8E C0			 mov es, ax
+     65	0188  BF 0CD0			 mov di, 2 * (80*20 + 40)
+     66	018B  B8 ABCD			 mov ax, 0ABCDh
+     67	018E  E8 FF72			 call itoa16_resid
+     68
+     69	0191  83 C7 02			 add di, 2
+     70	0194  B8 1234			 mov ax, 1234h
+     71	0197  E8 FF69			 call itoa16_resid
+     72
+     73	019A			     @@ret:  ; exit 0
+     74	019A  B8 4C00			 mov ax, 4c00h
+     75	019D  CD 21			 int 21h
+     76
+     77				     end start
+Turbo Assembler	 Version 4.1	    03/11/22 16:29:38	    Page 3
+Symbol Table
+
+
+
+
+Symbol Name			  Type	 Value
+
+??DATE				  Text	 "03/11/22"
+??FILENAME			  Text	 "itoa16~1"
+??TIME				  Text	 "16:29:38"
+??VERSION			  Number 040A
+@32BIT				  Text	 0
+@@RET				  Near	 DGROUP:0172
+@@RET				  Near	 DGROUP:019A
+@CODE				  Text	 DGROUP
+@CODESIZE			  Text	 0
+@CPU				  Text	 0101H
+@CURSEG				  Text	 _TEXT
+@DATA				  Text	 DGROUP
+@DATASIZE			  Text	 0
+@FILENAME			  Text	 ITOA16~1
+@INTERFACE			  Text	 000H
+@MODEL				  Text	 1
+@STACK				  Text	 DGROUP
+@WORDSIZE			  Text	 2
+ITOA16_RESID			  Near	 DGROUP:0103
+MAIN				  Near	 DGROUP:0183
+START				  Near	 DGROUP:0100
+XLATTABLE			  Byte	 DGROUP:0173
+
+Groups & Segments		  Bit Size Align  Combine Class
+
+DGROUP				  Group
+  _DATA				  16  0000 Word	  Public  DATA
+  _TEXT				  16  019F Word	  Public  CODE
+

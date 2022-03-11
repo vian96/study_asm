@@ -1,0 +1,64 @@
+Turbo Assembler	 Version 4.1	    03/11/22 16:51:19	    Page 1
+restest.asm
+
+
+
+      1	0000			     .model tiny
+      2	0000			     .code
+      3				     org 100h
+      4
+      5				     locals @@
+      6
+      7	0100			     start:
+      8	0100  32 C0			 xor al, al
+      9	0102  32 DB			 xor bl, bl
+     10	0104  32 C9			 xor cl, cl
+     11
+     12	0106			     @@loop:
+     13	0106  05 0080			 add ax, 128
+     14	0109  3D 0000			 cmp ax, 0
+     15	010C  75 F8			 jne @@loop
+     16	010E  83 C3 40			 add bx, 64
+     17	0111  83 FB 00			 cmp bx, 0
+     18	0114  75 F0			 jne @@loop
+     19	0116  83 C1 20			 add cx, 32
+     20	0119  83 F9 00			 cmp cx, 0
+     21	011C  75 E8			 jne @@loop
+     22	011E  42			 inc dx
+     23	011F  83 FA 00			 cmp dx, 0
+     24	0122  75 E2			 jne @@loop
+     25
+     26				     end start
+Turbo Assembler	 Version 4.1	    03/11/22 16:51:19	    Page 2
+Symbol Table
+
+
+
+
+Symbol Name			  Type	 Value
+
+??DATE				  Text	 "03/11/22"
+??FILENAME			  Text	 "restest "
+??TIME				  Text	 "16:51:19"
+??VERSION			  Number 040A
+@32BIT				  Text	 0
+@@LOOP				  Near	 DGROUP:0106
+@CODE				  Text	 DGROUP
+@CODESIZE			  Text	 0
+@CPU				  Text	 0101H
+@CURSEG				  Text	 _TEXT
+@DATA				  Text	 DGROUP
+@DATASIZE			  Text	 0
+@FILENAME			  Text	 RESTEST
+@INTERFACE			  Text	 000H
+@MODEL				  Text	 1
+@STACK				  Text	 DGROUP
+@WORDSIZE			  Text	 2
+START				  Near	 DGROUP:0100
+
+Groups & Segments		  Bit Size Align  Combine Class
+
+DGROUP				  Group
+  _DATA				  16  0000 Word	  Public  DATA
+  _TEXT				  16  0124 Word	  Public  CODE
+

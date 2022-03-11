@@ -47,11 +47,11 @@ draw_line endp
 ;------------------------------------------------
 ; DRAW A FRAME
 ; Draws a frame in console with args:
-;   ah - color
-;   cx - len
+;   ah - color  - using a constant
+;   cx - len    - using a constant
 ;   si - addr of 9 byte array
 ;   di - start of line
-;   es = 0b800h
+;   es = 0b800h - using a constant
 ;
 ; CHANGED: ax, cx, si, di, es
 ;------------------------------------------------
