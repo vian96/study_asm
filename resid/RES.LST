@@ -1,4 +1,4 @@
-Turbo Assembler	 Version 4.1	    03/11/22 23:20:14	    Page 1
+Turbo Assembler	 Version 4.1	    03/11/22 23:40:10	    Page 1
 res.asm
 
 
@@ -9,344 +9,359 @@ res.asm
       4				     org 100h
       5				     locals @@
       6
-      7				     ;------------------------------------------------
-      8				     ; CONSTANTS
-      9				     ;------------------------------------------------
-     10	      =000A		     start_y	 equ 10
-     11	      =001E		     start_x	 equ 30
-     12
-     13	      =000A		     size_x	 equ 10
-     14	      =0004		     size_y	 equ 4
-     15
-     16	      =0070		     color	 equ 070h    ; black on	white
-     17
-     18	      =0050		     line_len	 equ 80	     ; length of cmd line
-     19				     ;------------------------------------------------
-     20
-     21	0100			     start:
-     22	0100  E9 0240			     jmp main
-     23
-     24				     ;------------------------------------------------
-     25				     ; NEW09
-     26				     ;
-     27				     ; Function	to replace int09
-     28				     ; Prints a	table with registers and calls old int09
-     29				     ;------------------------------------------------
-     30	0103			     new09	 proc
-     31	0103  9C				 pushf
-     32	0104  55 56 57 06 1E 52	51+		 push bp si di es ds dx	cx bx ax
-     33	      53 50
-     34
-     35	010D  E4 60				 in al,	60h	 ; get pressed button from keyboard
-     36	010F  3C 02				 cmp al, 2	 ; if key is not 1 then	do nothing
-     37	0111  74 0A				 je @@start_table
-     38
-     39	0113  3C 03				 cmp al, 3
-     40	0115  74 03				 je @@jmp_repair
-     41
-     42	0117  E9 00C5				 jmp @@old_int	 ; needed because this label is	too far
+      7				     ; TODO is it okay to have them here?
+      8				     ;------------------------------------------------
+      9				     ; CONSTANTS
+     10				     ;------------------------------------------------
+     11	      =000A		     start_y	 equ 10
+     12	      =001E		     start_x	 equ 30
+     13
+     14	      =000A		     size_x	 equ 10
+     15	      =0004		     size_y	 equ 4
+     16
+     17	      =0070		     color	 equ 070h    ; black on	white
+     18
+     19	      =0050		     line_len	 equ 80	     ; length of cmd line
+     20				     ;------------------------------------------------
+     21
+     22	0100			     start:
+     23	0100  E9 0258			     jmp main
+     24
+     25				     ;------------------------------------------------
+     26				     ; NEW09
+     27				     ;
+     28				     ; Function	to replace int09
+     29				     ; Prints a	table with registers and calls old int09
+     30				     ;------------------------------------------------
+     31	0103			     new09	 proc
+     32	0103  9C				 pushf
+     33	0104  55 56 57 06 1E 52	51+		 push bp si di es ds dx	cx bx ax
+     34	      53 50
+     35
+     36						 ; TODO	maybe jump table?
+     37	010D  E4 60				 in al,	60h	 ; get pressed button from keyboard
+     38	010F  3C 02				 cmp al, 2	 ; if key is not 1 then	do nothing
+     39	0111  74 0A				 je @@start_table
+     40
+     41	0113  3C 03				 cmp al, 3
+     42	0115  74 03				 je @@jmp_repair
      43
-     44	011A			     @@jmp_repair:
-     45	011A  E9 00A1				 jmp @@start_repair
-     46
-     47	011D			     @@start_table:
-     48						 ; for stosw and lodsw
-     49	011D  8C C8				 mov ax, cs
-     50	011F  8E C0				 mov es, ax
-     51	0121  B8 B800				 mov ax, 0b800h
-     52	0124  8E D8				 mov ds, ax
-     53
-     54				     ;------------------------------------------------
-     55				     ; Saving old data
+     44	0117  E9 00DD				 jmp @@old_int	 ; needed because this label is	too far
+     45
+     46	011A			     @@jmp_repair:
+     47	011A  E9 00B9				 jmp @@start_repair
+     48
+     49	011D			     @@start_table:
+     50						 ; for using stosw and lodsw
+     51	011D  8C C8				 mov ax, cs
+     52	011F  8E C0				 mov es, ax
+     53	0121  B8 B800				 mov ax, 0b800h
+     54	0124  8E D8				 mov ds, ax
+     55
      56				     ;------------------------------------------------
-     57	      =0088				 @@line_offset = 2*line_len - 2	* size_x - 4
-Turbo Assembler	 Version 4.1	    03/11/22 23:20:14	    Page 2
+     57				     ; Saving old data
+Turbo Assembler	 Version 4.1	    03/11/22 23:40:10	    Page 2
 res.asm
 
 
 
-     58
-     59	0126  BE 067C				 mov si, 2*((start_y * line_len) + start_x) ; start of frame
-     60	0129  BF 01F7r				 mov di, offset	old_screen
-     61
-     62	012C  B9 0006				 mov cx, size_y	+ 2
-     63	012F			     @@copy_frame:
-     64	012F  51				 push cx
-     65	0130  B9 000C				 mov cx, size_x	+ 2
-     66	0133			     @@copy_line:
-     67	0133  AD				 lodsw
-     68	0134  AB				 stosw
-     69	0135  E2 FC				 loop @@copy_line
-     70
-     71	0137  81 C6 0088			 add si, @@line_offset
-     72	013B  59				 pop cx
-     73	013C  E2 F1				 loop @@copy_frame
-     74
-     75						 ; needed for using fuctions, since they use ds	inside
-     76	013E  8C C8				 mov ax, cs
-     77	0140  8E D8				 mov ds, ax
-     78	0142  B8 B800				 mov ax, 0b800h
-     79	0145  8E C0				 mov es, ax
-     80
-     81				     ;------------------------------------------------
-     82				     ; Drawing table itself
+     58				     ;------------------------------------------------
+     59	      =0088				 @@line_offset = 2*line_len - 2	* size_x - 4
+     60
+     61	0126  BE 067C				 mov si, 2*((start_y * line_len) + start_x) ; start of frame
+     62	0129  BF 020Fr				 mov di, offset	old_screen
+     63
+     64	012C  B9 0006				 mov cx, size_y	+ 2
+     65	012F			     @@copy_frame:
+     66	012F  51				 push cx
+     67	0130  B9 000C				 mov cx, size_x	+ 2
+     68	0133			     @@copy_line:
+     69	0133  AD				 lodsw
+     70	0134  AB				 stosw
+     71	0135  E2 FC				 loop @@copy_line
+     72
+     73	0137  81 C6 0088			 add si, @@line_offset
+     74	013B  59				 pop cx
+     75	013C  E2 F1				 loop @@copy_frame
+     76
+     77						 ; needed for using fuctions, since they use ds	inside
+     78	013E  8C C8				 mov ax, cs
+     79	0140  8E D8				 mov ds, ax
+     80	0142  B8 B800				 mov ax, 0b800h
+     81	0145  8E C0				 mov es, ax
+     82
      83				     ;------------------------------------------------
-     84	0147			     @@draw_table:
-     85	0147  BE 01EEr				 mov si, offset	frame_borders
-     86	014A  E8 0144				 call draw_frame
-     87
-     88	014D  8B EC				 mov bp, sp  ; needed for addressing since sp doesn't work ¯\_(ツ)_/¯
+     84				     ; Drawing table itself
+     85				     ;------------------------------------------------
+     86	0147			     @@draw_table:
+     87	0147  BE 0206r				 mov si, offset	frame_borders
+     88	014A  E8 015C				 call draw_frame
      89
-     90						 ; TODO	is it okay to have copy-paste like this?
-     91						 ; TODO	maybe strcpy?
-     92	014F  B0 61				 mov al, 'a'
-     93	0151  26: A2 0720			 mov es:[2 * ((start_y + 1) * line_len + start_x + 2)],	al
-     94	0155  B0 78				 mov al, 'x'
-     95	0157  26: A2 0722			 mov es:[2 * ((start_y + 1) * line_len + start_x + 3)],	al
-     96	015B  B0 3A				 mov al, ':'
-     97	015D  26: A2 0724			 mov es:[2 * ((start_y + 1) * line_len + start_x + 4)],	al
-     98	0161  BF 0728				 mov di, 2 * ((start_y + 1) * line_len + start_x + 6)
-     99	0164  8B 46 00				 mov ax, ss:[bp]
-    100	0167  E8 0159				 call itoa16_resid
-    101
-    102	016A  B0 62				 mov al, 'b'
-    103	016C  26: A2 07C0			 mov es:[2 * ((start_y + 2) * line_len + start_x + 2)],	al
-    104	0170  B0 78				 mov al, 'x'
-    105	0172  26: A2 07C2			 mov es:[2 * ((start_y + 2) * line_len + start_x + 3)],	al
-    106	0176  B0 3A				 mov al, ':'
-    107	0178  26: A2 07C4			 mov es:[2 * ((start_y + 2) * line_len + start_x + 4)],	al
-    108	017C  BF 07C8				 mov di, 2 * ((start_y + 2) * line_len + start_x + 6)
-    109	017F  8B 46 02				 mov ax, ss:[bp	+ 2]
-    110	0182  E8 013E				 call itoa16_resid
-    111
-    112	0185  B0 63				 mov al, 'c'
-    113	0187  26: A2 0860			 mov es:[2 * ((start_y + 3) * line_len + start_x + 2)],	al
-    114	018B  B0 78				 mov al, 'x'
-Turbo Assembler	 Version 4.1	    03/11/22 23:20:14	    Page 3
+     90	014D  8B EC				 mov bp, sp  ; needed for addressing since sp doesn't work ¯\_(ツ)_/¯
+     91
+     92						 ; TODO	is it okay to have copy-paste like this?
+     93						 ; TODO	maybe use function like	strcpy?
+     94						 ; TODO	or macro could be even better
+     95	014F  B0 61				 mov al, 'a'
+     96	0151  BF 0720				 mov di, 2 * ((start_y + 1) * line_len + start_x + 2)
+     97	0154  26: 88 05				 mov es:[di], al
+     98	0157  B0 78				 mov al, 'x'
+     99	0159  83 C7 02				 add di, 2
+    100	015C  26: 88 05				 mov es:[di], al
+    101	015F  B0 3A				 mov al, ':'
+    102	0161  83 C7 02				 add di, 2
+    103	0164  26: 88 05				 mov es:[di], al
+    104	0167  83 C7 04				 add di, 4
+    105	016A  8B 46 00				 mov ax, ss:[bp]
+    106	016D  E8 016B				 call itoa16_resid
+    107
+    108	0170  B0 62				 mov al, 'b'
+    109	0172  BF 07C0				 mov di, 2 * ((start_y + 2) * line_len + start_x + 2)
+    110	0175  26: 88 05				 mov es:[di], al
+    111	0178  B0 78				 mov al, 'x'
+    112	017A  83 C7 02				 add di, 2
+    113	017D  26: 88 05				 mov es:[di], al
+    114	0180  B0 3A				 mov al, ':'
+Turbo Assembler	 Version 4.1	    03/11/22 23:40:10	    Page 3
 res.asm
 
 
 
-    115	018D  26: A2 0862			 mov es:[2 * ((start_y + 3) * line_len + start_x + 3)],	al
-    116	0191  B0 3A				 mov al, ':'
-    117	0193  26: A2 0864			 mov es:[2 * ((start_y + 3) * line_len + start_x + 4)],	al
-    118	0197  BF 0868				 mov di, 2 * ((start_y + 3) * line_len + start_x + 6)
-    119	019A  8B 46 04				 mov ax, ss:[bp	+ 4]
-    120	019D  E8 0123				 call itoa16_resid
-    121
-    122	01A0  B0 64				 mov al, 'd'
-    123	01A2  26: A2 0900			 mov es:[2 * ((start_y + 4) * line_len + start_x + 2)],	al
-    124	01A6  B0 78				 mov al, 'x'
-    125	01A8  26: A2 0902			 mov es:[2 * ((start_y + 4) * line_len + start_x + 3)],	al
-    126	01AC  B0 3A				 mov al, ':'
-    127	01AE  26: A2 0904			 mov es:[2 * ((start_y + 4) * line_len + start_x + 4)],	al
-    128	01B2  BF 0908				 mov di, 2 * ((start_y + 4) * line_len + start_x + 6)
-    129	01B5  8B 46 06				 mov ax, ss:[bp	+ 6]
-    130	01B8  E8 0108				 call itoa16_resid
-    131
-    132	01BB  EB 22 90				 jmp @@old_int
+    115	0182  83 C7 02				 add di, 2
+    116	0185  26: 88 05				 mov es:[di], al
+    117	0188  83 C7 04				 add di, 4
+    118	018B  8B 46 02				 mov ax, ss:[bp	+ 2]
+    119	018E  E8 014A				 call itoa16_resid
+    120
+    121	0191  B0 63				 mov al, 'c'
+    122	0193  BF 0860				 mov di, 2 * ((start_y + 3) * line_len + start_x + 2)
+    123	0196  26: 88 05				 mov es:[di], al
+    124	0199  B0 78				 mov al, 'x'
+    125	019B  83 C7 02				 add di, 2
+    126	019E  26: 88 05				 mov es:[di], al
+    127	01A1  B0 3A				 mov al, ':'
+    128	01A3  83 C7 02				 add di, 2
+    129	01A6  26: 88 05				 mov es:[di], al
+    130	01A9  83 C7 04				 add di, 4
+    131	01AC  8B 46 04				 mov ax, ss:[bp	+ 4]
+    132	01AF  E8 0129				 call itoa16_resid
     133
-    134				     ;------------------------------------------------
-    135				     ; Puts old	data from screen instead of table
-    136				     ;------------------------------------------------
-    137	01BE			     @@start_repair:
-    138	01BE  8C C8				 mov ax, cs
-    139	01C0  8E D8				 mov ds, ax
-    140	01C2  B8 B800				 mov ax, 0b800h
-    141	01C5  8E C0				 mov es, ax
-    142
-    143	01C7  BF 067C				 mov di, 2*((start_y * line_len) + start_x) ; start of frame
-    144	01CA  BE 01F7r				 mov si, offset	old_screen
-    145
-    146	01CD  B9 0006				 mov cx, size_y	+ 2
-    147	01D0			     @@copy_screen:
-    148	01D0  51				 push cx
-    149	01D1  B9 000C				 mov cx, size_x	+ 2
-    150	01D4			     @@copy_sc_line:
-    151	01D4  AD				 lodsw
-    152	01D5  AB				 stosw
-    153	01D6  E2 FC				 loop @@copy_sc_line
-    154
-    155	01D8  81 C7 0088			 add di, @@line_offset
-    156	01DC  59				 pop cx
-    157	01DD  E2 F1				 loop @@copy_screen
-    158
-    159	01DF			     @@old_int:
-    160	01DF  58 5B 59 5A 1F 07	5F+		 pop ax	bx cx dx ds es di si bp
-    161	      5E 5D
-    162	01E8  9D				 popf
-    163
-    164	01E9  EA				 db 0eah     ; opcode of jmp far
-    165	01EA  00000000		     old09	 dd 0	     ; place for ptr to	prev int
-    166
-    167	01EE  2B 2D 2B 7C 20 7C	2B+		 frame_borders db "+-+|	|+-+"
-    168	      2D 2B
-    169	01F7  92*(00)				 old_screen  db	2*(size_x+2)*(size_y+2)	+ 2 dup(0)  ; places size_of_table zeroes   +
-    170				     (becasue borders are not included in size_x/y and 2* for color)
-    171
-Turbo Assembler	 Version 4.1	    03/11/22 23:20:14	    Page 4
+    134	01B2  B0 64				 mov al, 'd'
+    135	01B4  BF 0900				 mov di, 2 * ((start_y + 4) * line_len + start_x + 2)
+    136	01B7  26: 88 05				 mov es:[di], al
+    137	01BA  B0 78				 mov al, 'x'
+    138	01BC  83 C7 02				 add di, 2
+    139	01BF  26: 88 05				 mov es:[di], al
+    140	01C2  B0 3A				 mov al, ':'
+    141	01C4  83 C7 02				 add di, 2
+    142	01C7  26: 88 05				 mov es:[di], al
+    143	01CA  83 C7 04				 add di, 4
+    144	01CD  8B 46 06				 mov ax, ss:[bp	+ 6]
+    145	01D0  E8 0108				 call itoa16_resid
+    146
+    147	01D3  EB 22 90				 jmp @@old_int
+    148
+    149				     ;------------------------------------------------
+    150				     ; Puts old	data from screen instead of table
+    151				     ;------------------------------------------------
+    152	01D6			     @@start_repair:
+    153	01D6  8C C8				 mov ax, cs
+    154	01D8  8E D8				 mov ds, ax
+    155	01DA  B8 B800				 mov ax, 0b800h
+    156	01DD  8E C0				 mov es, ax
+    157
+    158	01DF  BF 067C				 mov di, 2*((start_y * line_len) + start_x) ; start of frame
+    159	01E2  BE 020Fr				 mov si, offset	old_screen
+    160
+    161	01E5  B9 0006				 mov cx, size_y	+ 2
+    162	01E8			     @@copy_screen:
+    163	01E8  51				 push cx
+    164	01E9  B9 000C				 mov cx, size_x	+ 2
+    165	01EC			     @@copy_sc_line:
+    166	01EC  AD				 lodsw
+    167	01ED  AB				 stosw
+    168	01EE  E2 FC				 loop @@copy_sc_line
+    169
+    170	01F0  81 C7 0088			 add di, @@line_offset
+    171	01F4  59				 pop cx
+Turbo Assembler	 Version 4.1	    03/11/22 23:40:10	    Page 4
 res.asm
 
 
 
-    172	0289			     new09	 endp
+    172	01F5  E2 F1				 loop @@copy_screen
     173
-    174				     ;------------------------------------------------
-    175				     ; DRAW A LINE
-    176				     ; Draws a line in console with args:
-    177				     ;	 ah - color
-    178				     ;	 cx - len
-    179				     ;	 si - addr of 3	byte array
-    180				     ;	 di - start of line
-    181				     ;	 es = 0b800h
-    182				     ;
-    183				     ; CHANGED:	ax, cx,	si, di,	es
-    184				     ;------------------------------------------------
-    185	0289			     draw_line proc
-    186					 ; evil	string instructions manipulation
-    187	0289  AC			 lodsb
-    188	028A  AB			 stosw
-    189	028B  AC			 lodsb
-    190	028C  F3> AB			 rep stosw
-    191	028E  AC			 lodsb
-    192	028F  AB			 stosw
-    193	0290  C3			 ret
-    194	0291			     draw_line endp
-    195				     ;------------------------------------------------
-    196
-    197				     ;------------------------------------------------
-    198				     ; DRAW A FRAME
-    199				     ; Draws a frame in	console	with args:
-    200				     ;	 ah - color	     - using a constant
-    201				     ;	 cx - len	     - using a constant
-    202				     ;	 si - addr of 9	byte array
-    203				     ;	 di - start of line  - using a constant
-    204				     ;	 es = 0b800h	     - using a constant
-    205				     ;
-    206				     ; CHANGED:	ax, cx,	si, di,	es
-    207				     ;------------------------------------------------
-    208	0291			     draw_frame	proc
-    209					 ; placed first	so it doesn't affect ax	reg
-    210					 ; because es can only be changed by ax
-    211	0291  B8 B800			 mov ax, 0b800h
-    212	0294  8E C0			 mov es, ax
-    213
-    214	0296  B4 70			 mov ah, color
-    215	0298  B9 000A			 mov cx, size_x
-    216	029B  BF 067C			 mov di, 2*((start_y * line_len) + start_x) ; this formula is coord of frame
-    217	029E  E8 FFE8			 call draw_line
-    218
-    219	      =0088			 @@line_offset = 2*line_len - 2	* size_x - 4
-    220
-    221	02A1  B9 0004			 mov cx, size_y
-    222	02A4				 @@lines:
-    223					     ; TODO is it good to manipulate cx	and stk	like this?
-    224	02A4  51			     push cx
-    225	02A5  81 C7 0088		     add di, @@line_offset
-    226	02A9  B9 000A			     mov cx, size_x
-    227	02AC  E8 FFDA			     call draw_line
-    228	02AF  83 C6 FD			     add si, -3	     ; to return to begin of table
-Turbo Assembler	 Version 4.1	    03/11/22 23:20:14	    Page 5
+    174	01F7			     @@old_int:
+    175	01F7  58 5B 59 5A 1F 07	5F+		 pop ax	bx cx dx ds es di si bp
+    176	      5E 5D
+    177	0200  9D				 popf
+    178
+    179	0201  EA				 db 0eah     ; opcode of jmp far
+    180	0202  00000000		     old09	 dd 0	     ; place for ptr to	prev int
+    181
+    182	0206  2B 2D 2B 7C 20 7C	2B+		 frame_borders db "+-+|	|+-+"
+    183	      2D 2B
+    184	020F  92*(00)				 old_screen  db	2*(size_x+2)*(size_y+2)	+ 2 dup(0)  ; places size_of_table zeroes   +
+    185				     (becasue borders are not included in size_x/y and 2* for color)
+    186
+    187	02A1			     new09	 endp
+    188
+    189				     ;------------------------------------------------
+    190				     ; DRAW A LINE
+    191				     ; Draws a line in console with args:
+    192				     ;	 ah - color
+    193				     ;	 cx - len
+    194				     ;	 si - addr of 3	byte array
+    195				     ;	 di - start of line
+    196				     ;	 es = 0b800h
+    197				     ;
+    198				     ; CHANGED:	ax, cx,	si, di,	es
+    199				     ;------------------------------------------------
+    200	02A1			     draw_line proc
+    201					 ; evil	string instructions manipulation
+    202	02A1  AC			 lodsb
+    203	02A2  AB			 stosw
+    204	02A3  AC			 lodsb
+    205	02A4  F3> AB			 rep stosw
+    206	02A6  AC			 lodsb
+    207	02A7  AB			 stosw
+    208	02A8  C3			 ret
+    209	02A9			     draw_line endp
+    210				     ;------------------------------------------------
+    211
+    212				     ;------------------------------------------------
+    213				     ; DRAW A FRAME
+    214				     ; Draws a frame in	console	with args:
+    215				     ;	 ah - color	     - using a constant
+    216				     ;	 cx - len	     - using a constant
+    217				     ;	 si - addr of 9	byte array
+    218				     ;	 di - start of line  - using a constant
+    219				     ;	 es = 0b800h	     - using a constant
+    220				     ;
+    221				     ; CHANGED:	ax, cx,	si, di,	es
+    222				     ;------------------------------------------------
+    223	02A9			     draw_frame	proc
+    224					 ; placed first	so it doesn't affect ax	reg
+    225					 ; because es can only be changed by ax
+    226	02A9  B8 B800			 mov ax, 0b800h
+    227	02AC  8E C0			 mov es, ax
+    228
+Turbo Assembler	 Version 4.1	    03/11/22 23:40:10	    Page 5
 res.asm
 
 
 
-    229	02B2  59			     pop cx
-    230	02B3  E2 EF			     loop @@lines
-    231
-    232					 ; print bottom	line
-    233	02B5  83 C6 03			 add si, 3
-    234	02B8  81 C7 0088		 add di, @@line_offset
-    235	02BC  B9 000A			 mov cx, size_x
-    236	02BF  E8 FFC7			 call draw_line
-    237
-    238	02C2  C3			 ret
-    239	02C3			     draw_frame	endp
-    240
-    241				     ;------------------------------------------------
-    242				     ; ITOA16_RESID
-    243				     ; Translates unsigned bx number to	str pointed by di with base 2^cl for resident purposes
-    244				     ; It doesn't place	\0 or $	at the end
-    245				     ; TODO make program always	fill four symbols
-    246				     ;	 di - ptr of str to be written
-    247				     ;	 ax - number to	be translated
-    248				     ;	 es - segment of memory	to write
-    249				     ; CHANGED:	bx, dx,	di, si
-    250				     ;------------------------------------------------
-    251	02C3			     itoa16_resid proc
-    252	02C3  8B D8			 mov bx, ax
-    253	02C5  D1 EB D1 EB D1 EB	D1+	 shr bx, 12
-    254	      EB D1 EB D1 EB D1	EB+
-    255	      D1 EB D1 EB D1 EB	D1+
-    256	      EB D1 EB
-    257	02DD  2E: 8A 9F	0333r		 mov bl, cs:[bx	+ offset XlatTable]
-    258	02E2  26: 88 1D			 mov es:[di], bl
-    259	02E5  83 C7 02			 add di, 2
-    260
-    261	02E8  8B D8			 mov bx, ax
-    262	02EA  81 E3 0F00		 and bx, 0F00h
-    263	02EE  D1 EB D1 EB D1 EB	D1+	 shr bx, 8
-    264	      EB D1 EB D1 EB D1	EB+
-    265	      D1 EB
-    266	02FE  2E: 8A 9F	0333r		 mov bl, cs:[bx	+ offset XlatTable]
-    267	0303  26: 88 1D			 mov es:[di], bl
-    268	0306  83 C7 02			 add di, 2
-    269
-    270	0309  8B D8			 mov bx, ax
-    271	030B  81 E3 00F0		 and bx, 0F0h
-    272	030F  D1 EB D1 EB D1 EB	D1+	 shr bx, 4
-    273	      EB
-    274	0317  2E: 8A 9F	0333r		 mov bl, cs:[bx	+ offset XlatTable]
-    275	031C  26: 88 1D			 mov es:[di], bl
-    276	031F  83 C7 02			 add di, 2
-    277
-    278	0322  8B D8			 mov bx, ax
-    279	0324  83 E3 0F			 and bx, 0Fh
-    280	0327  2E: 8A 9F	0333r		 mov bl, cs:[bx	+ offset XlatTable]
-    281	032C  26: 88 1D			 mov es:[di], bl
-    282	032F  83 C7 02			 add di, 2
-    283
-    284	0332			     @@ret:
-    285	0332  C3			 ret
-Turbo Assembler	 Version 4.1	    03/11/22 23:20:14	    Page 6
+    229	02AE  B4 70			 mov ah, color
+    230	02B0  B9 000A			 mov cx, size_x
+    231	02B3  BF 067C			 mov di, 2*((start_y * line_len) + start_x) ; this formula is coord of frame
+    232	02B6  E8 FFE8			 call draw_line
+    233
+    234	      =0088			 @@line_offset = 2*line_len - 2	* size_x - 4
+    235
+    236	02B9  B9 0004			 mov cx, size_y
+    237	02BC				 @@lines:
+    238					     ; TODO is it good to manipulate cx	and stk	like this?
+    239	02BC  51			     push cx
+    240	02BD  81 C7 0088		     add di, @@line_offset
+    241	02C1  B9 000A			     mov cx, size_x
+    242	02C4  E8 FFDA			     call draw_line
+    243	02C7  83 C6 FD			     add si, -3	     ; to return to begin of table
+    244	02CA  59			     pop cx
+    245	02CB  E2 EF			     loop @@lines
+    246
+    247					 ; print bottom	line
+    248	02CD  83 C6 03			 add si, 3
+    249	02D0  81 C7 0088		 add di, @@line_offset
+    250	02D4  B9 000A			 mov cx, size_x
+    251	02D7  E8 FFC7			 call draw_line
+    252
+    253	02DA  C3			 ret
+    254	02DB			     draw_frame	endp
+    255
+    256				     ;------------------------------------------------
+    257				     ; ITOA16_RESID
+    258				     ; Translates unsigned bx number to	str pointed by di with base 2^cl for resident purposes
+    259				     ; It doesn't place	\0 or $	at the end
+    260				     ; TODO make program always	fill four symbols
+    261				     ;	 di - ptr of str to be written
+    262				     ;	 ax - number to	be translated
+    263				     ;	 es - segment of memory	to write
+    264				     ; CHANGED:	bx, dx,	di, si
+    265				     ;------------------------------------------------
+    266	02DB			     itoa16_resid proc
+    267	02DB  8B D8			 mov bx, ax
+    268	02DD  D1 EB D1 EB D1 EB	D1+	 shr bx, 12
+    269	      EB D1 EB D1 EB D1	EB+
+    270	      D1 EB D1 EB D1 EB	D1+
+    271	      EB D1 EB
+    272	02F5  2E: 8A 9F	034Br		 mov bl, cs:[bx	+ offset XlatTable]
+    273	02FA  26: 88 1D			 mov es:[di], bl
+    274	02FD  83 C7 02			 add di, 2
+    275
+    276	0300  8B D8			 mov bx, ax
+    277	0302  81 E3 0F00		 and bx, 0F00h
+    278	0306  D1 EB D1 EB D1 EB	D1+	 shr bx, 8
+    279	      EB D1 EB D1 EB D1	EB+
+    280	      D1 EB
+    281	0316  2E: 8A 9F	034Br		 mov bl, cs:[bx	+ offset XlatTable]
+    282	031B  26: 88 1D			 mov es:[di], bl
+    283	031E  83 C7 02			 add di, 2
+    284
+    285	0321  8B D8			 mov bx, ax
+Turbo Assembler	 Version 4.1	    03/11/22 23:40:10	    Page 6
 res.asm
 
 
 
-    286
-    287	0333  30 31 32 33 34 35	36+	 XlatTable db "0123456789ABCDEF"
-    288	      37 38 39 41 42 43	44+
-    289	      45 46
-    290
-    291	0343			     itoa16_resid endp
+    286	0323  81 E3 00F0		 and bx, 0F0h
+    287	0327  D1 EB D1 EB D1 EB	D1+	 shr bx, 4
+    288	      EB
+    289	032F  2E: 8A 9F	034Br		 mov bl, cs:[bx	+ offset XlatTable]
+    290	0334  26: 88 1D			 mov es:[di], bl
+    291	0337  83 C7 02			 add di, 2
     292
-    293	0343			     main:
-    294	0343  33 DB			     xor bx, bx
-    295	0345  8E C3			     mov es, bx	     ; es = 0
-    296	0347  BB 0024			     mov bx, 09h*4   ; *4 is needed because every int ptr is 4 bytes
-    297
-    298					     ; saves 4 bytes of	ptr to int func
-    299	034A  26: 8B 07			     mov ax, es:[bx]
-    300	034D  2E: A3 01EAr		     mov word ptr cs:[old09], ax
-    301	0351  26: 8B 47	02		     mov ax, es:[bx+2]
-    302	0355  2E: A3 01ECr		     mov word ptr cs:[old09+2],	ax
-    303
-    304	0359  B8 0103r			     mov ax, offset new09
-    305	035C  26: 89 07			     mov es:[bx], ax
-    306	035F  26: 8C 4F	02		     mov es:[bx+2], cs
+    293	033A  8B D8			 mov bx, ax
+    294	033C  83 E3 0F			 and bx, 0Fh
+    295	033F  2E: 8A 9F	034Br		 mov bl, cs:[bx	+ offset XlatTable]
+    296	0344  26: 88 1D			 mov es:[di], bl
+    297	0347  83 C7 02			 add di, 2
+    298
+    299	034A			     @@ret:
+    300	034A  C3			 ret
+    301
+    302	034B  30 31 32 33 34 35	36+	 XlatTable db "0123456789ABCDEF"
+    303	      37 38 39 41 42 43	44+
+    304	      45 46
+    305
+    306	035B			     itoa16_resid endp
     307
-    308					     ; jmp new09
-    309
-    310	0363  BA 0343r			     mov dx, offset main     ; leaving as resident, offset main	is enough since	interruption+
-    311				     is	before
-    312	0366  D1 E2 D1 E2 D1 E2	D1+	     shl dx, 4
-    313	      E2
-    314	036E  42			     inc dx
-    315	036F  B8 3100			     mov ax, 3100h
-    316	0372  CD 21			     int 21h
-    317
-    318				     end start
-Turbo Assembler	 Version 4.1	    03/11/22 23:20:14	    Page 7
+    308	035B			     main:
+    309	035B  33 DB			     xor bx, bx
+    310	035D  8E C3			     mov es, bx	     ; es = 0
+    311	035F  BB 0024			     mov bx, 09h*4   ; *4 is needed because every int ptr is 4 bytes
+    312
+    313					     ; saves 4 bytes of	ptr to int func
+    314	0362  26: 8B 07			     mov ax, es:[bx]
+    315	0365  2E: A3 0202r		     mov word ptr cs:[old09], ax
+    316	0369  26: 8B 47	02		     mov ax, es:[bx+2]
+    317	036D  2E: A3 0204r		     mov word ptr cs:[old09+2],	ax
+    318
+    319	0371  B8 0103r			     mov ax, offset new09
+    320	0374  26: 89 07			     mov es:[bx], ax
+    321	0377  26: 8C 4F	02		     mov es:[bx+2], cs
+    322
+    323					     ; jmp new09
+    324
+    325	037B  BA 035Br			     mov dx, offset main     ; leaving as resident, offset main	is enough since	interruption+
+    326				     is	before
+    327	037E  D1 E2 D1 E2 D1 E2	D1+	     shl dx, 4
+    328	      E2
+    329	0386  42			     inc dx
+    330	0387  B8 3100			     mov ax, 3100h
+    331	038A  CD 21			     int 21h
+    332
+    333				     end start
+Turbo Assembler	 Version 4.1	    03/11/22 23:40:10	    Page 7
 Symbol Table
 
 
@@ -356,21 +371,21 @@ Symbol Name			  Type	 Value
 
 ??DATE				  Text	 "03/11/22"
 ??FILENAME			  Text	 "res	  "
-??TIME				  Text	 "23:20:14"
+??TIME				  Text	 "23:40:10"
 ??VERSION			  Number 040A
 @32BIT				  Text	 0
 @@COPY_FRAME			  Near	 DGROUP:012F
 @@COPY_LINE			  Near	 DGROUP:0133
-@@COPY_SCREEN			  Near	 DGROUP:01D0
-@@COPY_SC_LINE			  Near	 DGROUP:01D4
+@@COPY_SCREEN			  Near	 DGROUP:01E8
+@@COPY_SC_LINE			  Near	 DGROUP:01EC
 @@DRAW_TABLE			  Near	 DGROUP:0147
 @@JMP_REPAIR			  Near	 DGROUP:011A
-@@LINES				  Near	 DGROUP:02A4
+@@LINES				  Near	 DGROUP:02BC
 @@LINE_OFFSET			  Number 0088
 @@LINE_OFFSET			  Number 0088
-@@OLD_INT			  Near	 DGROUP:01DF
-@@RET				  Near	 DGROUP:0332
-@@START_REPAIR			  Near	 DGROUP:01BE
+@@OLD_INT			  Near	 DGROUP:01F7
+@@RET				  Near	 DGROUP:034A
+@@START_REPAIR			  Near	 DGROUP:01D6
 @@START_TABLE			  Near	 DGROUP:011D
 @CODE				  Text	 DGROUP
 @CODESIZE			  Text	 0
@@ -384,25 +399,25 @@ Symbol Name			  Type	 Value
 @STACK				  Text	 DGROUP
 @WORDSIZE			  Text	 2
 COLOR				  Number 0070
-DRAW_FRAME			  Near	 DGROUP:0291
-DRAW_LINE			  Near	 DGROUP:0289
-FRAME_BORDERS			  Byte	 DGROUP:01EE
-ITOA16_RESID			  Near	 DGROUP:02C3
+DRAW_FRAME			  Near	 DGROUP:02A9
+DRAW_LINE			  Near	 DGROUP:02A1
+FRAME_BORDERS			  Byte	 DGROUP:0206
+ITOA16_RESID			  Near	 DGROUP:02DB
 LINE_LEN			  Number 0050
-MAIN				  Near	 DGROUP:0343
+MAIN				  Near	 DGROUP:035B
 NEW09				  Near	 DGROUP:0103
-OLD09				  Dword	 DGROUP:01EA
-OLD_SCREEN			  Byte	 DGROUP:01F7
+OLD09				  Dword	 DGROUP:0202
+OLD_SCREEN			  Byte	 DGROUP:020F
 SIZE_X				  Number 000A
 SIZE_Y				  Number 0004
 START				  Near	 DGROUP:0100
 START_X				  Number 001E
 START_Y				  Number 000A
-XLATTABLE			  Byte	 DGROUP:0333
+XLATTABLE			  Byte	 DGROUP:034B
 
 Groups & Segments		  Bit Size Align  Combine Class
 
 DGROUP				  Group
   _DATA				  16  0000 Word	  Public  DATA
-  _TEXT				  16  0374 Word	  Public  CODE
+  _TEXT				  16  038C Word	  Public  CODE
 

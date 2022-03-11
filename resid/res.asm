@@ -4,6 +4,7 @@
 org 100h
 locals @@
 
+; TODO is it okay to have them here?
 ;------------------------------------------------
 ; CONSTANTS
 ;------------------------------------------------
@@ -31,6 +32,7 @@ new09       proc
             pushf
             push bp si di es ds dx cx bx ax
 
+            ; TODO maybe jump table?
             in al, 60h      ; get pressed button from keyboard
             cmp al, 2       ; if key is not 1 then do nothing
             je @@start_table
@@ -44,7 +46,7 @@ new09       proc
             jmp @@start_repair
 
 @@start_table:
-            ; for stosw and lodsw
+            ; for using stosw and lodsw
             mov ax, cs
             mov es, ax  
             mov ax, 0b800h
@@ -87,44 +89,57 @@ new09       proc
             mov bp, sp  ; needed for addressing since sp doesn't work ¯\_(ツ)_/¯
 
             ; TODO is it okay to have copy-paste like this?
-            ; TODO maybe strcpy?
+            ; TODO maybe use function like strcpy?
+            ; TODO or macro could be even better
             mov al, 'a'
-            mov es:[2 * ((start_y + 1) * line_len + start_x + 2)], al
+            mov di, 2 * ((start_y + 1) * line_len + start_x + 2)
+            mov es:[di], al
             mov al, 'x'
-            mov es:[2 * ((start_y + 1) * line_len + start_x + 3)], al
+            add di, 2
+            mov es:[di], al
             mov al, ':'
-            mov es:[2 * ((start_y + 1) * line_len + start_x + 4)], al
-            mov di, 2 * ((start_y + 1) * line_len + start_x + 6)
+            add di, 2 
+            mov es:[di], al
+            add di, 4
             mov ax, ss:[bp]
             call itoa16_resid
 
             mov al, 'b'
-            mov es:[2 * ((start_y + 2) * line_len + start_x + 2)], al
+            mov di, 2 * ((start_y + 2) * line_len + start_x + 2)
+            mov es:[di], al
             mov al, 'x'
-            mov es:[2 * ((start_y + 2) * line_len + start_x + 3)], al
+            add di, 2
+            mov es:[di], al
             mov al, ':'
-            mov es:[2 * ((start_y + 2) * line_len + start_x + 4)], al
-            mov di, 2 * ((start_y + 2) * line_len + start_x + 6)
+            add di, 2
+            mov es:[di], al
+            add di, 4
             mov ax, ss:[bp + 2]
             call itoa16_resid
 
             mov al, 'c'
-            mov es:[2 * ((start_y + 3) * line_len + start_x + 2)], al
+            mov di, 2 * ((start_y + 3) * line_len + start_x + 2)
+            mov es:[di], al
             mov al, 'x'
-            mov es:[2 * ((start_y + 3) * line_len + start_x + 3)], al
+            add di, 2
+            mov es:[di], al
             mov al, ':'
-            mov es:[2 * ((start_y + 3) * line_len + start_x + 4)], al
-            mov di, 2 * ((start_y + 3) * line_len + start_x + 6)
+            add di, 2
+            mov es:[di], al
+            add di, 4
             mov ax, ss:[bp + 4]
             call itoa16_resid
 
             mov al, 'd'
-            mov es:[2 * ((start_y + 4) * line_len + start_x + 2)], al
+            mov di, 2 * ((start_y + 4) * line_len + start_x + 2)
+            mov es:[di], al
             mov al, 'x'
-            mov es:[2 * ((start_y + 4) * line_len + start_x + 3)], al
+            add di, 2
+            mov es:[di], al
             mov al, ':'
-            mov es:[2 * ((start_y + 4) * line_len + start_x + 4)], al
-            mov di, 2 * ((start_y + 4) * line_len + start_x + 6)
+            add di, 2
+            mov es:[di], al
+            add di, 4
             mov ax, ss:[bp + 6]
             call itoa16_resid
 
@@ -142,6 +157,7 @@ new09       proc
             mov di, 2*((start_y * line_len) + start_x) ; start of frame
             mov si, offset old_screen
 
+; TODO maybe this copy-paste from @@copy_frame is bad?
             mov cx, size_y + 2
 @@copy_screen:
             push cx
@@ -200,6 +216,7 @@ draw_line endp
 ;   es = 0b800h         - using a constant
 ;
 ; CHANGED: ax, cx, si, di, es
+; TODO refactor a bit, it should not use constants
 ;------------------------------------------------
 draw_frame proc
     ; placed first so it doesn't affect ax reg
@@ -238,7 +255,6 @@ draw_frame endp
 ; ITOA16_RESID
 ; Translates unsigned bx number to str pointed by di with base 2^cl for resident purposes
 ; It doesn't place \0 or $ at the end
-; TODO make program always fill four symbols
 ;   di - ptr of str to be written
 ;   ax - number to be translated
 ;   es - segment of memory to write
