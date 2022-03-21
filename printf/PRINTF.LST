@@ -1,0 +1,463 @@
+Turbo Assembler	 Version 4.1	    03/21/22 22:39:34	    Page 1
+printf.asm
+
+
+
+      1	0000			     .model tiny
+      2	0000			     .code
+      3				     org 100h
+      4
+      5				     locals @@
+      6
+      7				     ;------------------------------------------------
+      8				     ; CONSTANTS
+      9
+     10				     ;------------------------------------------------
+     11
+     12				     ;------------------------------------------------
+     13				     ; PUTC MACRO
+     14				     ; Calls putchar from int 21h
+     15				     ; Changes al to 02h and dl	to sym
+     16				     ;------------------------------------------------
+     17				     PUTC macro	sym
+     18					 mov dl, sym
+     19					 mov ah, 02h
+     20					 int 21h
+     21				     endm    ; PUTC
+     22				     ;------------------------------------------------
+     23
+     24	0100			     start:
+     25	0100  E9 0198			 jmp main
+     26
+     27				     INCLUDE itoa.asm
+1    28				     ;------------------------------------------------
+1    29				     ; ITOA
+1    30				     ; Translates unsigned bx number to	str pointed by di with base cx and places $ at the end
+1    31				     ;	 di - ptr of str to be written
+1    32				     ;	 cx - base
+1    33				     ;	 ax - number to	be translated
+1    34				     ; CHANGED:	bx, dx,	di, si
+1    35				     ;------------------------------------------------
+1    36	0103			     itoa proc
+1    37					 ; TODO	check if number	is zero
+1    38					 ; TODO	check if it works properly on 1	integer	number
+1    39	0103  8B F7			 mov si, di
+1    40
+1    41	0105				 @@loop:
+1    42	0105  BA 0000			     mov dx, 0
+1    43	0108  F7 F1			     div cx		 ; ax =	dx:ax div cx, dx = dx:ax % cx
+1    44	010A  8B DA			     mov bx, dx
+1    45	010C  8A 97 0162r		     mov dl, ds:[bx + offset XlatTable]
+1    46
+1    47	0110  88 15			     mov ds:[di], dl
+1    48	0112  47			     inc di
+1    49
+1    50	0113  3D 0000			     cmp ax, 0
+1    51	0116  74 02			     je	@@end_loop
+1    52	0118  EB EB			 jmp @@loop
+1    53
+1    54	011A				 @@end_loop:
+1    55	011A  8B CF			 mov cx, di
+1    56	011C  2B CE			 sub cx, si
+1    57	011E  D1 E9			 shr cx, 1
+Turbo Assembler	 Version 4.1	    03/21/22 22:39:34	    Page 2
+printf.asm
+
+
+
+1    58	0120  C7 05 0024		 mov ds:[di], '$'
+*Warning* itoa.asm(31) Argument	needs type override
+1    59	0124  4F			 dec di
+1    60
+1    61	0125				 @@reverse:
+1    62	0125  8A 05			     mov al, ds:[di]
+1    63	0127  86 04			     xchg ds:[si], al
+1    64	0129  88 05			     mov ds:[di], al
+1    65
+1    66	012B  4F			     dec di
+1    67	012C  46			     inc si
+1    68	012D  E2 F6			 loop @@reverse
+1    69
+1    70	012F			     @@ret:
+1    71	012F  C3			 ret
+1    72	0130			     itoa endp
+1    73
+1    74				     ;------------------------------------------------
+1    75				     ; ITOA2N
+1    76				     ; Translates unsigned bx number to	str pointed by di with base 2^cl and places $ at the end
+1    77				     ;	 di - ptr of str to be written
+1    78				     ;	 cl - power of base
+1    79				     ;	 ax - number to	be translated
+1    80				     ;	 bh = 0
+1    81				     ; CHANGED:	bx, dx,	di, si
+1    82				     ;------------------------------------------------
+1    83	0130			     itoa2n proc
+1    84					 ; TODO	check if number	is zero
+1    85					 ; TODO	check if it works properly on 1	integer	number
+1    86	0130  8B F7			 mov si, di
+1    87	0132  BA 0001			 mov dx, 1
+1    88	0135  D3 E2			 shl dx, cl
+1    89	0137  4A			 dec dx			 ; dx =	2^cl - 1
+1    90
+1    91	0138				 @@loop:
+1    92	0138  8B D8			     mov bx, ax
+1    93	013A  23 DA			     and bx, dx		 ; bx =	ax % 2^cl
+1    94	013C  D3 E8			     shr ax, cl		 ; ax =	ax / 2^cl
+1    95
+1    96	013E  8A 9F 0162r		     mov bl, ds:[bx + offset XlatTable]
+1    97	0142  88 1D			     mov ds:[di], bl
+1    98	0144  47			     inc di
+1    99
+1   100	0145  3D 0000			     cmp ax, 0
+1   101	0148  74 02			     je	@@end_loop
+1   102	014A  EB EC			 jmp @@loop
+1   103
+1   104					 ; TODO	is it okay to have copypaste like this?
+1   105	014C				 @@end_loop:
+1   106	014C  8B CF			 mov cx, di
+1   107	014E  2B CE			 sub cx, si
+1   108	0150  D1 E9			 shr cx, 1
+1   109	0152  C7 05 0024		 mov ds:[di], '$'
+*Warning* itoa.asm(82) Argument	needs type override
+1   110	0156  4F			 dec di
+1   111
+1   112	0157				 @@reverse:
+Turbo Assembler	 Version 4.1	    03/21/22 22:39:34	    Page 3
+printf.asm
+
+
+
+1   113	0157  8A 05			     mov al, ds:[di]
+1   114	0159  86 04			     xchg ds:[si], al
+1   115	015B  88 05			     mov ds:[di], al
+1   116
+1   117	015D  4F			     dec di
+1   118	015E  46			     inc si
+1   119	015F  E2 F6			 loop @@reverse
+1   120
+1   121	0161			     @@ret:
+1   122	0161  C3			 ret
+1   123	0162			     itoa2n endp
+1   124
+1   125	0162  30 31 32 33 34 35	36+	 XlatTable db "0123456789ABCDEF"
+    126	      37 38 39 41 42 43	44+
+    127	      45 46
+1   128
+1   129
+    130
+    131				     ;------------------------------------------------
+    132				     ; PRINTF
+    133				     ;
+    134				     ; CHANGED:	si, ax,	dl, cx (ret), bx
+    135				     ;------------------------------------------------
+    136	0172			     printf	 proc
+    137					 ; si is where we read string
+    138	0172  59			 pop cx
+    139	0173  89 0E 0299r		 mov ds:[@@ret_addr], cx
+    140	0177  5E			 pop si
+    141	0178  4E			 dec si	     ; useful because you do not need to inc it	befoure	calling	loop
+    142
+    143	0179				 @@printf_loop:
+    144	0179  46			     inc si
+    145	017A  8A 04			     mov al, ds:[si]
+    146	017C  3C 25			     cmp al, '%'
+    147	017E  74 18			     je	@@codes
+    148
+    149	0180  3C 00			     cmp al, 0
+    150	0182  74 08			     je	@@ret
+    151
+    152					     PUTC al
+1   153	0184  8A D0			 mov dl, al
+1   154	0186  B4 02			 mov ah, 02h
+1   155	0188  CD 21			 int 21h
+    156
+    157	018A  EB ED			     jmp @@printf_loop
+    158
+    159	018C			     @@ret:
+    160	018C  8B 0E 0299r		 mov cx, ds:[@@ret_addr]
+    161	0190  51			 push cx
+    162	0191  C3			 ret
+    163
+    164	0192			     @@jmp_percent:
+    165	0192  E9 00EE			 jmp @@percent
+    166
+    167	0195			     @@jmp_default:
+    168	0195  E9 00EE			 jmp @@default
+    169
+Turbo Assembler	 Version 4.1	    03/21/22 22:39:34	    Page 4
+printf.asm
+
+
+
+    170	0198			     @@codes:
+    171	0198  46			 inc si
+    172	0199  8A 04			 mov al, ds:[si]
+    173
+    174	019B  3C 25			 cmp al, '%'
+    175	019D  74 F3			 je @@jmp_percent
+    176	019F  3C 62			 cmp al, 'b'
+    177	01A1  7C F2			 jl @@jmp_default    ; less than 'b'
+    178	01A3  3C 78			 cmp al, 'x'
+    179	01A5  7F EE			 jg @@jmp_default    ; more than 'x'
+    180
+    181	01A7  2C 62			 sub al, 'b'
+    182	01A9  8A D8			 mov bl, al
+    183	01AB  32 FF			 xor bh, bh
+    184	01AD  03 DB			 add bx, bx
+    185
+    186	01AF  8B 9F 01B5r		 mov bx, ds:[bx	+ offset @@jmp_table]
+    187	01B3  FF E3			 jmp bx
+    188
+    189	01B5			     @@jmp_table:
+    190					 ; hardcoded jmp table
+    191	01B5  0201r			 dw offset @@bin
+    192	01B7  0261r			 dw offset @@char
+    193	01B9  01E3r			 dw offset @@dec
+    194	01BB  0A*(0286r)		 dw 10 dup(offset @@default)
+    195	01CF  0221r			 dw offset @@oct
+    196	01D1  03*(0286r)		 dw 3 dup(offset @@default)
+    197	01D7  026Br			 dw offset @@str
+    198	01D9  04*(0286r)		 dw 4 dup(offset @@default)
+    199	01E1  0241r			 dw offset @@hex
+    200
+    201	01E3			     @@dec:
+    202					 ; TODO	check if it is needed
+    203					 ; PUTC	'D'
+    204
+    205	01E3  58			 pop ax
+    206	01E4  53 51 52 56 57		 push bx cx dx si di
+    207	01E9  BF 0289r			 mov di, offset	@@str_buffer
+    208	01EC  B9 000A			 mov cx, 10
+    209	01EF  E8 FF11			 call itoa
+    210	01F2  5F 5E 5A 59 5B		 pop di	si dx cx bx
+    211
+    212	01F7  BA 0289r			 mov dx, offset	@@str_buffer
+    213	01FA  B4 09			 mov ah, 09h
+    214	01FC  CD 21			 int 21h
+    215	01FE  E9 FF78			 jmp @@printf_loop
+    216
+    217	0201			     @@bin:
+    218					 ; PUTC	'B'
+    219
+    220	0201  58			 pop ax
+    221	0202  53 51 52 56 57		 push bx cx dx si di
+    222	0207  BF 0289r			 mov di, offset	@@str_buffer
+    223	020A  B9 0001			 mov cx, 1
+    224	020D  32 FF			 xor bh, bh
+    225	020F  E8 FF1E			 call itoa2n
+    226	0212  5F 5E 5A 59 5B		 pop di	si dx cx bx
+Turbo Assembler	 Version 4.1	    03/21/22 22:39:34	    Page 5
+printf.asm
+
+
+
+    227
+    228	0217  BA 0289r			 mov dx, offset	@@str_buffer
+    229	021A  B4 09			 mov ah, 09h
+    230	021C  CD 21			 int 21h
+    231	021E  E9 FF58			 jmp @@printf_loop
+    232
+    233	0221			     @@oct:
+    234					 ; PUTC	'O'
+    235
+    236	0221  58			 pop ax
+    237	0222  53 51 52 56 57		 push bx cx dx si di
+    238	0227  BF 0289r			 mov di, offset	@@str_buffer
+    239	022A  B9 0003			 mov cx, 3
+    240	022D  32 FF			 xor bh, bh
+    241	022F  E8 FEFE			 call itoa2n
+    242
+    243	0232  BA 0289r			 mov dx, offset	@@str_buffer
+    244	0235  B4 09			 mov ah, 09h
+    245	0237  CD 21			 int 21h
+    246	0239  5F 5E 5A 59 5B		 pop di	si dx cx bx
+    247
+    248	023E  E9 FF38			 jmp @@printf_loop
+    249
+    250	0241			     @@hex:
+    251					 ; PUTC	'X'
+    252
+    253	0241  58			 pop ax
+    254	0242  53 51 52 56 57		 push bx cx dx si di
+    255	0247  BF 0289r			 mov di, offset	@@str_buffer
+    256	024A  B9 0004			 mov cx, 4
+    257	024D  32 FF			 xor bh, bh
+    258	024F  E8 FEDE			 call itoa2n
+    259
+    260	0252  BA 0289r			 mov dx, offset	@@str_buffer
+    261	0255  B4 09			 mov ah, 09h
+    262	0257  CD 21			 int 21h
+    263	0259  5F 5E 5A 59 5B		 pop di	si dx cx bx
+    264
+    265	025E  E9 FF18			 jmp @@printf_loop
+    266
+    267	0261			     @@char:
+    268					 ; PUTC	'C'
+    269	0261  58			 pop ax
+    270					 PUTC al
+1   271	0262  8A D0			 mov dl, al
+1   272	0264  B4 02			 mov ah, 02h
+1   273	0266  CD 21			 int 21h
+    274	0268  E9 FF0E			 jmp @@printf_loop
+    275
+    276	026B			     @@str:
+    277					 ; PUTC	'S'
+    278	026B  58			 pop ax
+    279	026C  56 52			 push si dx
+    280	026E  8B F0			 mov si, ax
+    281
+    282					 ; TODO	strlen + write
+    283					 ;	or if i	can use	str funct
+Turbo Assembler	 Version 4.1	    03/21/22 22:39:34	    Page 6
+printf.asm
+
+
+
+    284	0270  B4 02			 mov ah, 02h
+    285	0272			     @@print_str:
+    286	0272  8A 14			 mov dl, ds:[si]
+    287	0274  80 FA 00			 cmp dl, 0
+    288	0277  74 05			 je @@exit_print_str_loop
+    289	0279  CD 21			 int 21h
+    290	027B  46			 inc si
+    291	027C  EB F4			 jmp @@print_str
+    292
+    293	027E			     @@exit_print_str_loop:
+    294	027E  5A 5E			 pop dx	si
+    295	0280  E9 FEF6			 jmp @@printf_loop
+    296
+    297
+    298	0283			     @@percent:
+    299					 ; PUTC	'%'
+    300	0283  E9 FEF3			 jmp @@printf_loop
+    301
+    302	0286			     @@default:
+    303					 ; PUTC	'E'
+    304	0286  E9 FEF0			 jmp @@printf_loop
+    305
+    306	0289  10*(DE)		     @@str_buffer db 16	dup(0DEh)
+    307	0299  0000		     @@ret_addr	  dw 0
+    308
+    309	029B			     printf	 endp
+    310
+    311	029B			     main:
+    312	029B  50 55 8B EC C7 46	02+	 push 17
+    313	      0011 5D
+    314	02A5  50 55 8B EC C7 46	02+	 push 0DEh
+    315	      00DE 5D
+    316	02AF  50 55 8B EC C7 46	02+	 push offset str_wr
+    317	      032Er 5D
+    318	02B9  50 55 8B EC C7 46	02+	 push 'j'
+    319	      006A 5D
+    320	02C3  50 55 8B EC C7 46	02+	 push 6
+    321	      0006 5D
+    322	02CD  50 55 8B EC C7 46	02+	 push 1345
+    323	      0541 5D
+    324	02D7  50 55 8B EC C7 46	02+	 push offset str_to_printf
+    325	      02E9r 5D
+    326	02E1  E8 FE8E			 call printf
+    327
+    328	02E4			     @@exit:
+    329	02E4  B8 4C00			 mov ax, 4c00h
+    330	02E7  CD 21			 int 21h
+    331
+    332	02E9  50 52 49 4E 54 46	46+	 str_to_printf db "PRINTFFFF %d	was not	%b and %c so it	is %s and %x but not %o	(not 0)", 0
+    333	      46 46 20 25 64 20	77+
+    334	      61 73 20 6E 6F 74	20+
+    335	      25 62 20 61 6E 64	20+
+    336	      25 63 20 73 6F 20	69+
+    337	      74 20 69 73 20 25	73+
+    338	      20 61 6E 64 20 25	78+
+    339	      20 62 75 74 20 6E	6F+
+    340	      74 20 25 6F 20 28	6E+
+Turbo Assembler	 Version 4.1	    03/21/22 22:39:34	    Page 7
+printf.asm
+
+
+
+    341	      6F 74 20 30 29 00
+    342	032E  73 6F 6D 65 20 73	74+	 str_wr	       db "some	str", 0
+    343	      72 00
+    344				     end start
+Turbo Assembler	 Version 4.1	    03/21/22 22:39:34	    Page 8
+Symbol Table
+
+
+
+
+Symbol Name			  Type	 Value
+
+??DATE				  Text	 "03/21/22"
+??FILENAME			  Text	 "printf  "
+??TIME				  Text	 "22:39:34"
+??VERSION			  Number 040A
+@32BIT				  Text	 0
+@@BIN				  Near	 DGROUP:0201
+@@CHAR				  Near	 DGROUP:0261
+@@CODES				  Near	 DGROUP:0198
+@@DEC				  Near	 DGROUP:01E3
+@@DEFAULT			  Near	 DGROUP:0286
+@@END_LOOP			  Near	 DGROUP:011A
+@@END_LOOP			  Near	 DGROUP:014C
+@@EXIT				  Near	 DGROUP:02E4
+@@EXIT_PRINT_STR_LOOP		  Near	 DGROUP:027E
+@@HEX				  Near	 DGROUP:0241
+@@JMP_DEFAULT			  Near	 DGROUP:0195
+@@JMP_PERCENT			  Near	 DGROUP:0192
+@@JMP_TABLE			  Near	 DGROUP:01B5
+@@LOOP				  Near	 DGROUP:0105
+@@LOOP				  Near	 DGROUP:0138
+@@OCT				  Near	 DGROUP:0221
+@@PERCENT			  Near	 DGROUP:0283
+@@PRINTF_LOOP			  Near	 DGROUP:0179
+@@PRINT_STR			  Near	 DGROUP:0272
+@@RET				  Near	 DGROUP:012F
+@@RET				  Near	 DGROUP:0161
+@@RET				  Near	 DGROUP:018C
+@@RET_ADDR			  Word	 DGROUP:0299
+@@REVERSE			  Near	 DGROUP:0125
+@@REVERSE			  Near	 DGROUP:0157
+@@STR				  Near	 DGROUP:026B
+@@STR_BUFFER			  Byte	 DGROUP:0289
+@CODE				  Text	 DGROUP
+@CODESIZE			  Text	 0
+@CPU				  Text	 0101H
+@CURSEG				  Text	 _TEXT
+@DATA				  Text	 DGROUP
+@DATASIZE			  Text	 0
+@FILENAME			  Text	 PRINTF
+@INTERFACE			  Text	 000H
+@MODEL				  Text	 1
+@STACK				  Text	 DGROUP
+@WORDSIZE			  Text	 2
+ITOA				  Near	 DGROUP:0103
+ITOA2N				  Near	 DGROUP:0130
+MAIN				  Near	 DGROUP:029B
+PRINTF				  Near	 DGROUP:0172
+START				  Near	 DGROUP:0100
+STR_TO_PRINTF			  Byte	 DGROUP:02E9
+STR_WR				  Byte	 DGROUP:032E
+XLATTABLE			  Byte	 DGROUP:0162
+Turbo Assembler	 Version 4.1	    03/21/22 22:39:34	    Page 9
+Symbol Table
+
+
+
+
+Macro Name
+
+PUTC
+
+Groups & Segments		  Bit Size Align  Combine Class
+
+DGROUP				  Group
+  _DATA				  16  0000 Word	  Public  DATA
+  _TEXT				  16  0337 Word	  Public  CODE
+Turbo Assembler	 Version 4.1	    03/21/22 22:39:34	    Page 10
+Error Summary
+
+
+
+*Warning* itoa.asm(31) Argument	needs type override
+*Warning* itoa.asm(82) Argument	needs type override
+

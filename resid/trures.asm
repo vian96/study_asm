@@ -1,5 +1,7 @@
 .model tiny
 
+; TODO functions, magic numbers for keys, std, выделить макрос
+
 .code 
 org 100h
 locals @@
@@ -79,7 +81,7 @@ new09       proc
             mov ax, 0b800h
             mov es, ax
 
-            ;;; MOVE [08] new08
+            ; MOVE [08] new08
             xor bx, bx
             mov es, bx      ; es = 0
             mov bx, 08h*4   ; *4 is needed because every int ptr is 4 bytes
@@ -94,7 +96,7 @@ new09       proc
 ; Puts old data from screen instead of table
 ;------------------------------------------------
 @@start_repair:
-            ;;; MOVE [08] old08
+            ; MOVE [08] old08
             xor bx, bx
             mov es, bx      ; es = 0
             mov bx, 08h*4   ; *4 is needed because every int ptr is 4 bytes
@@ -131,8 +133,8 @@ new09       proc
             pop ax bx cx dx ds es di si bp
             popf
 
-            db 0eah     ; opcode of jmp far
-old09       dd 0        ; place for ptr to prev int
+            db 0eah         ; opcode of jmp far
+old09       dd 0            ; place for ptr to prev int
 
             frame_borders db "+-+| |+-+"
             old_screen  db 2*(size_x+2)*(size_y+2) + 2 dup(0)  ; places size_of_table zeroes (becasue borders are not included in size_x/y and 2* for color) 
@@ -161,7 +163,9 @@ new08       proc
             mov si, offset frame_borders
             call draw_frame
 
-            mov bp, sp  ; needed for addressing since sp doesn't work ¯\_(ツ)_/¯
+            mov bp, sp      ; needed for addressing since sp doesn't work ¯\_(ツ)_/¯
+
+;- - - - - - - - - - - - - - - - - - - - - - - - -
 
 print_line macro letter, num
             mov al, letter
@@ -186,8 +190,8 @@ endm    ; print_line
             pop ax bx cx dx ds es di si bp
             popf
 
-            db 0eah     ; opcode of jmp far
-old08       dd 0        ; place for ptr to prev int
+            db 0eah         ; opcode of jmp far
+old08       dd 0            ; place for ptr to prev int
 
 new08       endp
 
@@ -267,6 +271,7 @@ draw_frame endp
 ; CHANGED: bx, dx, di, si
 ;------------------------------------------------
 itoa16_resid proc
+    ; hardcoded since it is easier
     mov bx, ax
     shr bx, 12
     mov bl, cs:[bx + offset XlatTable]
@@ -302,8 +307,8 @@ itoa16_resid endp
 
 main:
         xor bx, bx
-        mov es, bx      ; es = 0
-        mov bx, 09h*4   ; *4 is needed because every int ptr is 4 bytes
+        mov es, bx              ; es = 0
+        mov bx, 09h*4           ; *4 is needed because every int ptr is 4 bytes
 
         ; saves 4 bytes of ptr to int func
         mov ax, es:[bx]
@@ -320,8 +325,6 @@ main:
         mov word ptr cs:[old08], ax
         mov ax, es:[bx+2]
         mov word ptr cs:[old08+2], ax
-
-        ; jmp new09
 
         mov dx, offset main     ; leaving as resident, offset main is enough since interruption is before
         shl dx, 4

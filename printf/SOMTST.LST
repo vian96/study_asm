@@ -1,0 +1,51 @@
+Turbo Assembler	 Version 4.1	    03/21/22 21:05:23	    Page 1
+somtst.asm
+
+
+
+      1	0000			     .model tiny
+      2	0000			     .code
+      3				     org 100h
+      4
+      5				     locals @@
+      6
+      7	0100			     start:
+      8	0100  B2 78			 mov dl, 'x'
+      9	0102  B0 02			 mov al, 02h
+     10	0104  CD 21			 int 21h
+     11
+     12	0106  B8 4C00			 mov ax, 4c00h
+     13	0109  CD 21			 int 21h
+     14				     end start
+Turbo Assembler	 Version 4.1	    03/21/22 21:05:23	    Page 2
+Symbol Table
+
+
+
+
+Symbol Name			  Type	 Value
+
+??DATE				  Text	 "03/21/22"
+??FILENAME			  Text	 "somtst  "
+??TIME				  Text	 "21:05:23"
+??VERSION			  Number 040A
+@32BIT				  Text	 0
+@CODE				  Text	 DGROUP
+@CODESIZE			  Text	 0
+@CPU				  Text	 0101H
+@CURSEG				  Text	 _TEXT
+@DATA				  Text	 DGROUP
+@DATASIZE			  Text	 0
+@FILENAME			  Text	 SOMTST
+@INTERFACE			  Text	 000H
+@MODEL				  Text	 1
+@STACK				  Text	 DGROUP
+@WORDSIZE			  Text	 2
+START				  Near	 DGROUP:0100
+
+Groups & Segments		  Bit Size Align  Combine Class
+
+DGROUP				  Group
+  _DATA				  16  0000 Word	  Public  DATA
+  _TEXT				  16  010B Word	  Public  CODE
+

@@ -5,23 +5,20 @@ org 100h
 locals @@
 
 start:
-    xor al, al
-    xor bl, bl
-    xor cl, cl
+    mov ax, 111h
+    mov bx, 2222h
+    mov cx, 3333h
+    mov dx, 4444h
+
+    std
 
 @@loop:
-    add ax, 128
-    cmp ax, 0
+    in al, 60h
+    cmp al, 1
     jne @@loop
-    add bx, 64
-    cmp bx, 0
-    jne @@loop
-    add cx, 32
-    cmp cx, 0
-    jne @@loop
-    inc dx
-    cmp dx, 0
-    jne @@loop
+
+    mov ax, 4c00h
+    int 21h
 
 end start
 
