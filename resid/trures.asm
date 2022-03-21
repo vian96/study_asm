@@ -163,11 +163,9 @@ new08       proc
 
             mov bp, sp  ; needed for addressing since sp doesn't work ¯\_(ツ)_/¯
 
-            ; TODO is it okay to have copy-paste like this?
-            ; TODO maybe use function like strcpy?
-            ; TODO or macro could be even better
-            mov al, 'a'
-            mov di, 2 * ((start_y + 1) * line_len + start_x + 2)
+print_line macro letter, num
+            mov al, letter
+            mov di, 2 * ((start_y + num) * line_len + start_x + 2)
             mov es:[di], al
             mov al, 'x'
             add di, 2
@@ -176,47 +174,14 @@ new08       proc
             add di, 2 
             mov es:[di], al
             add di, 4
-            mov ax, ss:[bp]
+            mov ax, ss:[bp + num*2 - 2]
             call itoa16_resid
+endm    ; print_line
 
-            mov al, 'b'
-            mov di, 2 * ((start_y + 2) * line_len + start_x + 2)
-            mov es:[di], al
-            mov al, 'x'
-            add di, 2
-            mov es:[di], al
-            mov al, ':'
-            add di, 2
-            mov es:[di], al
-            add di, 4
-            mov ax, ss:[bp + 2]
-            call itoa16_resid
-
-            mov al, 'c'
-            mov di, 2 * ((start_y + 3) * line_len + start_x + 2)
-            mov es:[di], al
-            mov al, 'x'
-            add di, 2
-            mov es:[di], al
-            mov al, ':'
-            add di, 2
-            mov es:[di], al
-            add di, 4
-            mov ax, ss:[bp + 4]
-            call itoa16_resid
-
-            mov al, 'd'
-            mov di, 2 * ((start_y + 4) * line_len + start_x + 2)
-            mov es:[di], al
-            mov al, 'x'
-            add di, 2
-            mov es:[di], al
-            mov al, ':'
-            add di, 2
-            mov es:[di], al
-            add di, 4
-            mov ax, ss:[bp + 6]
-            call itoa16_resid
+            print_line 'a', 1
+            print_line 'b', 2
+            print_line 'c', 3
+            print_line 'd', 4
 
             pop ax bx cx dx ds es di si bp
             popf
