@@ -28,6 +28,7 @@ section .bss
         itoaBuff                resb 40 ; because 32 + some buffer space
         ret_addr                resd 1
 
+
 section .text
 
 %include "itoa.asm"
@@ -78,11 +79,8 @@ printf:
         jmp .printf_loop
 
 .ret:
-    DEB
     mov ecx, [ret_addr]
-    DEB
     push ecx
-    DEB
     ret
 
 .jmp_percent:
@@ -235,8 +233,6 @@ _start:
     push dword 1345
     push dword  str_to_printf
     call printf
-
-    DEB
 
     ; ExitProcess( 0 )
     push    dword 0   
