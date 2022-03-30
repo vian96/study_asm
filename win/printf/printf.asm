@@ -23,55 +23,12 @@ section .bss
         numCharsWritten:        resd 1
         STDOutputHandle         resd 1
 
+        itoaBuff                resb 40 ; because 32 + some buffer space
+
+
 section .text
 
-;------------------------------------------------
-; ITOA
-; Translates unsigned bx number to str pointed by di with base cx and places $ at the end
-;   di - ptr of str to be written
-;   cx - base
-;   ax - number to be translated
-; CHANGED: bx, dx, di, si
-;------------------------------------------------
-itoa:
-    ; TODO check if number is zero
-    ; TODO check if it works properly on 1 integer number
-    mov esi, edi
-
-    .loop:
-        mov edx, 0
-        div ecx              ; eax = edx:eax div ecx, edx = edx:eax % ecx
-        mov ebx, edx
-        mov dl, [ebx + XlatTable]
-
-        mov [edi], dl
-        inc edi
-
-        cmp eax, 0
-        je .end_loop
-    jmp .loop
-
-.end_loop:
-    mov ecx, edi
-    sub ecx, esi
-    shr ecx, 1
-    mov byte [edi], '$'
-    dec edi
-
-    .reverse_ans:
-        mov al, [edi]
-        xchg [esi], al
-        mov [edi], al
-
-        dec edi
-        inc esi
-    loop .reverse_ans
-
-    ret
-
-    XlatTable db '0123456789ABCDEF'
-
-; end of itoa
+%include "itoa.asm"
 
 _start:
 
@@ -80,7 +37,12 @@ _start:
         call    GetStdHandle ; returns in eax
         mov [STDOutputHandle], eax
 
-        WRITE str, strLen
+        mov ecx, 3
+        mov edi, itoaBuff
+        mov eax, 4213
+        call itoa2n
+
+        WRITE itoaBuff, eax
 
         ; ExitProcess( 0 )
         push    dword 0   
