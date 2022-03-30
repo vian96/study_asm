@@ -25,14 +25,15 @@
     24 00000004 ????????                        STDOutputHandle         resd 1
     25                                  
     26                                  section .text
-    27                                          _start:
-    28                                  
-    29                                          ; GetStdHandle( STD_OUTPUT_HANDLE ) ;
-    30 00000000 6AF5                            push    dword -11
-    31 00000002 E8(00000000)                    call    GetStdHandle ; returns in eax
-    32 00000007 A3[04000000]                    mov [STDOutputHandle], eax
-    33                                  
-    34                                          WRITE str, strLen
+    27                                  
+    28                                  _start:
+    29                                  
+    30                                          ; GetStdHandle( STD_OUTPUT_HANDLE )
+    31 00000000 6AF5                            push    dword -11
+    32 00000002 E8(00000000)                    call    GetStdHandle ; returns in eax
+    33 00000007 A3[04000000]                    mov [STDOutputHandle], eax
+    34                                  
+    35                                          WRITE str, strLen
      9                              <1> 
     10 0000000C 6A00                <1>  push dword 0
     11 0000000E 68[00000000]        <1>  push numCharsWritten
@@ -40,9 +41,8 @@
     13 00000015 68[00000000]        <1>  push dword %1
     14 0000001A FF35[04000000]      <1>  push dword [STDOutputHandle]
     15 00000020 E8(00000000)        <1>  call WriteConsoleA
-    35                                  
     36                                  
     37                                          ; ExitProcess( 0 )
-    38 00000025 6A00                            push    dword 0         ; Arg1: push exit code
+    38 00000025 6A00                            push    dword 0   
     39 00000027 E8(00000000)                    call    ExitProcess
     40                                          

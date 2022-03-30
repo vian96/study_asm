@@ -24,9 +24,10 @@ section .bss
         STDOutputHandle         resd 1
 
 section .text
-        _start:
 
-        ; GetStdHandle( STD_OUTPUT_HANDLE ) ;
+_start:
+
+        ; GetStdHandle( STD_OUTPUT_HANDLE )
         push    dword -11
         call    GetStdHandle ; returns in eax
         mov [STDOutputHandle], eax
@@ -34,6 +35,6 @@ section .text
         WRITE str, strLen
 
         ; ExitProcess( 0 )
-        push    dword 0         ; Arg1: push exit code
+        push    dword 0   
         call    ExitProcess
         
