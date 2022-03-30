@@ -1,0 +1,48 @@
+     1                                  global _start
+     2                                  
+     3                                  extern GetStdHandle
+     4                                  extern WriteConsoleA
+     5                                  extern ExitProcess
+     6                                  
+     7                                  ; First arg is str and second is length
+     8                                  %macro WRITE 2
+     9                                  ; WriteConsole( STD_OUTPUT_HANDLE, strbuffer, numofchar, numwritten, double 0)
+    10                                          push    dword 0         
+    11                                          push    numCharsWritten
+    12                                          push    dword %2    
+    13                                          push    dword %1             
+    14                                          push    dword    [STDOutputHandle]
+    15                                          call    WriteConsoleA
+    16                                  %endmacro ; WRITE
+    17                                  
+    18                                  section .data
+    19 00000000 78656C6C6F2C20776F-             str:     db 'xello, world!', 0x0D, 0x0A, 0 ; \r\n\0
+    19 00000009 726C64210D0A00     
+    20                                          strLen:  equ $-str
+    21                                  
+    22                                  section .bss
+    23 00000000 ????????                        numCharsWritten:        resd 1
+    24 00000004 ????????                        STDOutputHandle         resd 1
+    25                                  
+    26                                  section .text
+    27                                          _start:
+    28                                  
+    29                                          ; GetStdHandle( STD_OUTPUT_HANDLE ) ;
+    30 00000000 6AF5                            push    dword -11
+    31 00000002 E8(00000000)                    call    GetStdHandle ; returns in eax
+    32 00000007 A3[04000000]                    mov [STDOutputHandle], eax
+    33                                  
+    34                                          WRITE str, strLen
+     9                              <1> 
+    10 0000000C 6A00                <1>  push dword 0
+    11 0000000E 68[00000000]        <1>  push numCharsWritten
+    12 00000013 6A10                <1>  push dword %2
+    13 00000015 68[00000000]        <1>  push dword %1
+    14 0000001A FF35[04000000]      <1>  push dword [STDOutputHandle]
+    15 00000020 E8(00000000)        <1>  call WriteConsoleA
+    35                                  
+    36                                  
+    37                                          ; ExitProcess( 0 )
+    38 00000025 6A00                            push    dword 0         ; Arg1: push exit code
+    39 00000027 E8(00000000)                    call    ExitProcess
+    40                                          
