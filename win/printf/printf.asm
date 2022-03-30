@@ -17,7 +17,6 @@ extern ExitProcess
 
 %define DEB     WRITE DEBSTR, 4
 
-
 section .data
         str:     db 'xello, world!', 0x0D, 0x0A, 0 ; \r\n\0
         strLen:  equ $-str
@@ -28,7 +27,6 @@ section .bss
 
         itoaBuff                resb 40 ; because 32 + some buffer space
         ret_addr                resd 1
-
 
 section .text
 
@@ -60,16 +58,11 @@ strlen:
 ; CHANGED: esi, eax, dl, ecx (ret), ebx
 ;------------------------------------------------
 printf:
-    DEB
     ; si is where we read string
     pop ecx
-    DEB
     mov [ret_addr], ecx
-    DEB
     pop esi
     dec esi      ; useful because you do not need to inc it befoure calling loop
-
-    DEB
 
     .printf_loop:
         inc esi
@@ -85,8 +78,11 @@ printf:
         jmp .printf_loop
 
 .ret:
+    DEB
     mov ecx, [ret_addr]
+    DEB
     push ecx
+    DEB
     ret
 
 .jmp_percent:
@@ -192,10 +188,9 @@ printf:
     jmp .printf_loop
 
 .char:
-    ; PUTC 'C'
     pop eax
-    ; PUTC al
-    ; TODO DO CHAR
+    mov [itoaBuff], al
+    WRITE itoaBuff, 1
     jmp .printf_loop
 
 .str:
@@ -215,7 +210,8 @@ printf:
     jmp .printf_loop
 
 .percent:
-    ; PUTC '%'
+    mov byte [itoaBuff], '%'
+    WRITE itoaBuff, 1
     jmp .printf_loop
 
 .default:
@@ -226,25 +222,27 @@ printf:
 
 _start:
 
-        ; GetStdHandle( STD_OUTPUT_HANDLE )
-        push    dword -11
-        call    GetStdHandle ; returns in eax
-        mov [STDOutputHandle], eax
+    ; GetStdHandle( STD_OUTPUT_HANDLE )
+    push dword -11
+    call GetStdHandle ; returns in eax
+    mov [STDOutputHandle], eax
 
-        push dword 17
-        push dword 0DEh
-        push dword  str_wr
-        push dword 'j'
-        push dword 6
-        push dword 1345
-        push dword  str_to_printf
-        call printf
+    push dword 17
+    push dword 0DEh
+    push dword  str_wr
+    push dword 'j'
+    push dword 6
+    push dword 1345
+    push dword  str_to_printf
+    call printf
 
-        ; ExitProcess( 0 )
-        push    dword 0   
-        call    ExitProcess
+    DEB
 
-        str_to_printf db "PRINTFFFF %d was not %b and %c so it is %s and %x but not %o (not 0)", 0
-        str_wr        db "some str", 0
+    ; ExitProcess( 0 )
+    push    dword 0   
+    call    ExitProcess
 
-        DEBSTR db "DEB", 10, 0
+    str_to_printf db "PRINTFFFF %d was not %b and %c so it is %s and %x but not %o (not 0)", 10, "a", 0
+    str_wr        db "some str", 0
+
+    DEBSTR db "DEB", 10, 0
