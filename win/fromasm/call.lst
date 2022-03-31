@@ -1,4 +1,4 @@
-     1                                  extern _print
+     1                                  extern print
      2                                  extern ExitProcess
      3                                  
      4                                  global _start
@@ -8,7 +8,7 @@
      8                                  section .text
      9                                  
     10                                  _start:
-    11 00000000 E8(00000000)                call _print
+    11 00000000 E8(00000000)                call print
     12                                  
     13                                      ; ExitProcess( 0 )
     14 00000005 6A00                        push    dword 0   
