@@ -22,11 +22,11 @@ section .data
         strLen:  equ $-str
 
 section .bss
-        numCharsWritten:        resd 1
-        STDOutputHandle         resd 1
+        numCharsWritten     resd 1
+        STDOutputHandle     resd 1
 
-        itoaBuff                resb 40 ; because 32 + some buffer space
-        ret_addr                resd 1
+        itoaBuff            resb 40 ; because 32 + some buffer space
+        ret_addr            resd 1
 
 
 section .text
@@ -41,14 +41,14 @@ section .text
 ;------------------------------------------------
 strlen:
     ; TODO check flags of direction
-    mov   ebx, edi
-    xor   al, al  
-    mov   ecx, 0xffffffff
+    mov     ebx, edi
+    xor     al, al  
+    mov     ecx, 0xffffffff
 
-    repne scasb   ; while [edi] != al
+    repne   scasb   ; while [edi] != al
 
-    sub   edi, ebx     
-    mov   eax, edi     
+    sub     edi, ebx     
+    mov     eax, edi     
 
     ret         
 ; end of strlen 
@@ -60,179 +60,169 @@ strlen:
 ;------------------------------------------------
 printf:
     ; si is where we read string
-    pop ecx
-    mov [ret_addr], ecx
-    pop esi
-    dec esi      ; useful because you do not need to inc it befoure calling loop
+    pop     ecx
+    mov     [ret_addr], ecx
+    pop     esi
+    mov     edi, esi
+    dec     esi      ; useful because you do not need to inc it befoure calling loop
 
     .printf_loop:
-        inc esi
-        mov al, [esi]
-        cmp al, '%'
-        je .codes
+        inc     esi
+        mov     al, [esi]
+        cmp     al, '%'
+        je      .codes
 
-        cmp al, 0
-        je .ret
+        cmp     al, 0
+        je      .ret
 
-        WRITE esi, 1
+        WRITE   esi, 1
         
-        jmp .printf_loop
+        jmp     .printf_loop
 
 .ret:
-    mov ecx, [ret_addr]
-    push ecx
+    mov     ecx, [ret_addr]
+    push    ecx
     ret
 
 .jmp_percent:
-    jmp .percent
+    jmp     .percent
 
 .jmp_default:
-    jmp .default
+    jmp     .default
 
 .codes:
-    inc esi
-    mov al, [esi]
+    inc     esi
+    mov     al, [esi]
 
-    cmp al, '%'
-    je .jmp_percent
-    cmp al, 'b'
-    jl .jmp_default    ; less than 'b'
-    cmp al, 'x'
-    jg .jmp_default    ; more than 'x'
+    cmp     al, '%'
+    je      .jmp_percent
+    cmp     al, 'b'
+    jl      .jmp_default    ; less than 'b'
+    cmp     al, 'x'
+    jg      .jmp_default    ; more than 'x'
 
-    sub al, 'b'
-    xor ebx, ebx
-    mov bl, al
+    sub     al, 'b'
+    xor     ebx, ebx
+    mov     bl, al
     ; ebx = 4*al
-    add ebx, ebx
-    add ebx, ebx
+    add     ebx, ebx
+    add     ebx, ebx
 
-    mov ebx, [ebx + .jmp_table]
-    jmp ebx
+    mov     ebx, [ebx + .jmp_table]
+    jmp     ebx
 
 .jmp_table:
     ; hardcoded jmp table
-    dd .bin 
-    dd .char
-    dd .dec
-    dd 10 dup(.default)
-    dd .oct
-    dd 3 dup(.default)
-    dd .str
-    dd 4 dup(.default)
-    dd .hex
+    dd      .bin 
+    dd      .char
+    dd      .dec
+    dd      10 dup(.default)
+    dd      .oct
+    dd      3 dup(.default)
+    dd      .str
+    dd      4 dup(.default)
+    dd      .hex
 
 .dec:
-    pop eax
-    push ecx
-    push esi
+    pop     eax
+    push    esi
 
-    mov edi, itoaBuff
-    mov ecx, 10
-    call itoa
+    mov     edi, itoaBuff
+    mov     ecx, 10
+    call    itoa
 
-    pop esi
-    pop ecx
+    pop     esi
 
-    WRITE itoaBuff, eax
-    jmp .printf_loop
+    WRITE   itoaBuff, eax
+    jmp     .printf_loop
 
 .bin:
-    pop eax
-    push ecx
-    push esi
+    pop     eax
+    push    esi
 
-    mov edi, itoaBuff
-    mov ecx, 1
-    xor bh, bh
-    call itoa2n
+    mov     edi, itoaBuff
+    mov     ecx, 1
+    xor     bh, bh
+    call    itoa2n
 
-    pop esi
-    pop ecx
+    pop     esi
 
-    WRITE itoaBuff, eax
-    jmp .printf_loop
+    WRITE   itoaBuff, eax
+    jmp     .printf_loop
 
 .oct:
-    pop eax
-    push ecx
-    push esi
+    pop     eax
+    push    esi
 
-    mov edi, itoaBuff
-    mov ecx, 3
-    xor bh, bh
-    call itoa2n
+    mov     edi, itoaBuff
+    mov     ecx, 3
+    xor     bh, bh
+    call    itoa2n
 
-    pop esi
-    pop ecx
+    pop     esi
 
-    WRITE itoaBuff, eax
-    jmp .printf_loop
+    WRITE   itoaBuff, eax
+    jmp     .printf_loop
 
 .hex:
-    pop eax
-    push ecx
-    push esi
+    pop     eax
+    push    esi
 
-    mov edi, itoaBuff
-    mov ecx, 4
-    xor bh, bh
-    call itoa2n
+    mov     edi, itoaBuff
+    mov     ecx, 4
+    xor     bh, bh
+    call    itoa2n
 
-    pop esi
-    pop ecx
+    pop     esi
 
-    WRITE itoaBuff, eax
-    jmp .printf_loop
+    WRITE   itoaBuff, eax
+    jmp     .printf_loop
 
 .char:
-    pop eax
-    mov [itoaBuff], al
-    WRITE itoaBuff, 1
-    jmp .printf_loop
+    pop     eax
+    mov     [itoaBuff], al
+    WRITE   itoaBuff, 1
+    jmp     .printf_loop
 
 .str:
-    pop eax
-    push ecx
-    push esi
+    pop     eax
+    push    esi
 
-    mov esi, eax
-    mov edi, eax
-    call strlen
+    mov     esi, eax
+    mov     edi, eax
+    call    strlen
 
-    WRITE esi, eax
+    WRITE   esi, eax
 
-    pop esi
-    pop ecx
+    pop     esi
 
-    jmp .printf_loop
+    jmp     .printf_loop
 
 .percent:
-    mov byte [itoaBuff], '%'
-    WRITE itoaBuff, 1
-    jmp .printf_loop
+    mov     byte [itoaBuff], '%'
+    WRITE   itoaBuff, 1
+    jmp     .printf_loop
 
 .default:
-    ; PUTC 'E'
-    jmp .printf_loop
+    jmp     .printf_loop
 
 ; end of printf
 
 _start:
 
     ; GetStdHandle( STD_OUTPUT_HANDLE )
-    push dword -11
-    call GetStdHandle ; returns in eax
-    mov [STDOutputHandle], eax
+    push    dword -11
+    call    GetStdHandle ; returns in eax
+    mov     [STDOutputHandle], eax
 
-    push dword 17
-    push dword 0DEh
-    push dword  str_wr
-    push dword 'j'
-    push dword 6
-    push dword 1345
-    push dword  str_to_printf
-    call printf
+    push    dword 17
+    push    dword 0DEh
+    push    dword  str_wr
+    push    dword 'j'
+    push    dword 6
+    push    dword 1345
+    push    dword  str_to_printf
+    call    printf
 
     ; ExitProcess( 0 )
     push    dword 0   
