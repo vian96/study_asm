@@ -175,263 +175,264 @@
     49                                  
     50 000000BF 29DF                        sub     edi, ebx     
     51 000000C1 89F8                        mov     eax, edi     
-    52                                  
-    53 000000C3 C3                          ret         
-    54                                  ; end of strlen 
-    55                                  
-    56                                  ;------------------------------------------------
-    57                                  ; PRINTF
-    58                                  ; 
-    59                                  ; CHANGED: esi, eax, dl, ecx (ret), ebx
-    60                                  ;------------------------------------------------
-    61                                  printf:
-    62                                      ; si is where we read string
-    63 000000C4 59                          pop     ecx
-    64 000000C5 890D[30000000]              mov     [ret_addr], ecx
-    65 000000CB 5E                          pop     esi
-    66 000000CC 89F7                        mov     edi, esi
-    67 000000CE 4E                          dec     esi      ; useful because you do not need to inc it befoure calling loop
-    68                                  
-    69                                      .printf_loop:
-    70 000000CF 46                              inc     esi
-    71 000000D0 8A06                            mov     al, [esi]
-    72 000000D2 3C25                            cmp     al, '%'
-    73 000000D4 742D                            je      .codes
-    74                                  
-    75 000000D6 3C00                            cmp     al, 0
-    76 000000D8 7417                            je      .ret
-    77                                  
-    78                                          WRITE   esi, 1
+    52 000000C3 48                          dec eax
+    53                                  
+    54 000000C4 C3                          ret         
+    55                                  ; end of strlen 
+    56                                  
+    57                                  ;------------------------------------------------
+    58                                  ; PRINTF
+    59                                  ; 
+    60                                  ; CHANGED: esi, eax, dl, ecx (ret), ebx
+    61                                  ;------------------------------------------------
+    62                                  printf:
+    63                                      ; si is where we read string
+    64 000000C5 59                          pop     ecx
+    65 000000C6 890D[30000000]              mov     [ret_addr], ecx
+    66 000000CC 5E                          pop     esi
+    67 000000CD 89F7                        mov     edi, esi
+    68 000000CF 4E                          dec     esi      ; useful because you do not need to inc it befoure calling loop
+    69                                  
+    70                                      .printf_loop:
+    71 000000D0 46                              inc     esi
+    72 000000D1 8A06                            mov     al, [esi]
+    73 000000D3 3C25                            cmp     al, '%'
+    74 000000D5 742D                            je      .codes
+    75                                  
+    76 000000D7 3C00                            cmp     al, 0
+    77 000000D9 7417                            je      .ret
+    78                                  
+    79                                          WRITE   esi, 1
      9                              <1> 
-    10 000000DA 6A00                <1>  push dword 0
-    11 000000DC 68[00000000]        <1>  push numCharsWritten
-    12 000000E1 6A01                <1>  push dword %2
-    13 000000E3 56                  <1>  push dword %1
-    14 000000E4 FF35[04000000]      <1>  push dword [STDOutputHandle]
-    15 000000EA E8(00000000)        <1>  call WriteConsoleA
-    79                                          
-    80 000000EF EBDE                            jmp     .printf_loop
-    81                                  
-    82                                  .ret:
-    83 000000F1 8B0D[30000000]              mov     ecx, [ret_addr]
-    84 000000F7 51                          push    ecx
-    85 000000F8 C3                          ret
-    86                                  
-    87                                  .jmp_percent:
-    88 000000F9 E98D010000                  jmp     .percent
-    89                                  
-    90                                  .jmp_default:
-    91 000000FE E9AD010000                  jmp     .default
-    92                                  
-    93                                  .codes:
-    94 00000103 46                          inc     esi
-    95 00000104 8A06                        mov     al, [esi]
-    96                                  
-    97 00000106 3C25                        cmp     al, '%'
-    98 00000108 74EF                        je      .jmp_percent
-    99 0000010A 3C62                        cmp     al, 'b'
-   100 0000010C 7CF0                        jl      .jmp_default    ; less than 'b'
-   101 0000010E 3C78                        cmp     al, 'x'
-   102 00000110 7FEC                        jg      .jmp_default    ; more than 'x'
-   103                                  
-   104 00000112 2C62                        sub     al, 'b'
-   105 00000114 31DB                        xor     ebx, ebx
-   106 00000116 88C3                        mov     bl, al
-   107                                      ; ebx = 4*al
-   108 00000118 01DB                        add     ebx, ebx
-   109 0000011A 01DB                        add     ebx, ebx
-   110                                  
-   111 0000011C 8B9B[24010000]              mov     ebx, [ebx + .jmp_table]
-   112 00000122 FFE3                        jmp     ebx
-   113                                  
-   114                                  .jmp_table:
-   115                                      ; hardcoded jmp table
-   116 00000124 [AF010000]                  dd      .bin 
-   117 00000128 [42020000]                  dd      .char
-   118 0000012C [80010000]                  dd      .dec
-   119 00000130 [B0020000]-                 dd      10 dup(.default)
-   119 00000134 [B0020000]-        
-   119 00000138 [B0020000]-        
-   119 0000013C [B0020000]-        
-   119 00000140 [B0020000]-        
-   119 00000144 [B0020000]-        
-   119 00000148 [B0020000]-        
-   119 0000014C [B0020000]-        
-   119 00000150 [B0020000]-        
-   119 00000154 [B0020000]         
-   120 00000158 [E0010000]                  dd      .oct
-   121 0000015C [B0020000]-                 dd      3 dup(.default)
-   121 00000160 [B0020000]-        
-   121 00000164 [B0020000]         
-   122 00000168 [66020000]                  dd      .str
-   123 0000016C [B0020000]-                 dd      4 dup(.default)
-   123 00000170 [B0020000]-        
-   123 00000174 [B0020000]-        
-   123 00000178 [B0020000]         
-   124 0000017C [11020000]                  dd      .hex
-   125                                  
-   126                                  .dec:
-   127 00000180 58                          pop     eax
-   128 00000181 56                          push    esi
-   129                                  
-   130 00000182 BF[08000000]                mov     edi, itoaBuff
-   131 00000187 B90A000000                  mov     ecx, 10
-   132 0000018C E86FFEFFFF                  call    itoa
-   133                                  
-   134 00000191 5E                          pop     esi
-   135                                  
-   136                                      WRITE   itoaBuff, eax
+    10 000000DB 6A00                <1>  push dword 0
+    11 000000DD 68[00000000]        <1>  push numCharsWritten
+    12 000000E2 6A01                <1>  push dword %2
+    13 000000E4 56                  <1>  push dword %1
+    14 000000E5 FF35[04000000]      <1>  push dword [STDOutputHandle]
+    15 000000EB E8(00000000)        <1>  call WriteConsoleA
+    80                                          
+    81 000000F0 EBDE                            jmp     .printf_loop
+    82                                  
+    83                                  .ret:
+    84 000000F2 8B0D[30000000]              mov     ecx, [ret_addr]
+    85 000000F8 51                          push    ecx
+    86 000000F9 C3                          ret
+    87                                  
+    88                                  .jmp_percent:
+    89 000000FA E98D010000                  jmp     .percent
+    90                                  
+    91                                  .jmp_default:
+    92 000000FF E9AD010000                  jmp     .default
+    93                                  
+    94                                  .codes:
+    95 00000104 46                          inc     esi
+    96 00000105 8A06                        mov     al, [esi]
+    97                                  
+    98 00000107 3C25                        cmp     al, '%'
+    99 00000109 74EF                        je      .jmp_percent
+   100 0000010B 3C62                        cmp     al, 'b'
+   101 0000010D 7CF0                        jl      .jmp_default    ; less than 'b'
+   102 0000010F 3C78                        cmp     al, 'x'
+   103 00000111 7FEC                        jg      .jmp_default    ; more than 'x'
+   104                                  
+   105 00000113 2C62                        sub     al, 'b'
+   106 00000115 31DB                        xor     ebx, ebx
+   107 00000117 88C3                        mov     bl, al
+   108                                      ; ebx = 4*al
+   109 00000119 01DB                        add     ebx, ebx
+   110 0000011B 01DB                        add     ebx, ebx
+   111                                  
+   112 0000011D 8B9B[25010000]              mov     ebx, [ebx + .jmp_table]
+   113 00000123 FFE3                        jmp     ebx
+   114                                  
+   115                                  .jmp_table:
+   116                                      ; hardcoded jmp table
+   117 00000125 [B0010000]                  dd      .bin 
+   118 00000129 [43020000]                  dd      .char
+   119 0000012D [81010000]                  dd      .dec
+   120 00000131 [B1020000]-                 dd      10 dup(.default)
+   120 00000135 [B1020000]-        
+   120 00000139 [B1020000]-        
+   120 0000013D [B1020000]-        
+   120 00000141 [B1020000]-        
+   120 00000145 [B1020000]-        
+   120 00000149 [B1020000]-        
+   120 0000014D [B1020000]-        
+   120 00000151 [B1020000]-        
+   120 00000155 [B1020000]         
+   121 00000159 [E1010000]                  dd      .oct
+   122 0000015D [B1020000]-                 dd      3 dup(.default)
+   122 00000161 [B1020000]-        
+   122 00000165 [B1020000]         
+   123 00000169 [67020000]                  dd      .str
+   124 0000016D [B1020000]-                 dd      4 dup(.default)
+   124 00000171 [B1020000]-        
+   124 00000175 [B1020000]-        
+   124 00000179 [B1020000]         
+   125 0000017D [12020000]                  dd      .hex
+   126                                  
+   127                                  .dec:
+   128 00000181 58                          pop     eax
+   129 00000182 56                          push    esi
+   130                                  
+   131 00000183 BF[08000000]                mov     edi, itoaBuff
+   132 00000188 B90A000000                  mov     ecx, 10
+   133 0000018D E86EFEFFFF                  call    itoa
+   134                                  
+   135 00000192 5E                          pop     esi
+   136                                  
+   137                                      WRITE   itoaBuff, eax
      9                              <1> 
-    10 00000192 6A00                <1>  push dword 0
-    11 00000194 68[00000000]        <1>  push numCharsWritten
-    12 00000199 50                  <1>  push dword %2
-    13 0000019A 68[08000000]        <1>  push dword %1
-    14 0000019F FF35[04000000]      <1>  push dword [STDOutputHandle]
-    15 000001A5 E8(00000000)        <1>  call WriteConsoleA
-   137 000001AA E920FFFFFF                  jmp     .printf_loop
-   138                                  
-   139                                  .bin:
-   140 000001AF 58                          pop     eax
-   141 000001B0 56                          push    esi
-   142                                  
-   143 000001B1 BF[08000000]                mov     edi, itoaBuff
-   144 000001B6 B901000000                  mov     ecx, 1
-   145 000001BB 30FF                        xor     bh, bh
-   146 000001BD E88AFEFFFF                  call    itoa2n
-   147                                  
-   148 000001C2 5E                          pop     esi
-   149                                  
-   150                                      WRITE   itoaBuff, eax
+    10 00000193 6A00                <1>  push dword 0
+    11 00000195 68[00000000]        <1>  push numCharsWritten
+    12 0000019A 50                  <1>  push dword %2
+    13 0000019B 68[08000000]        <1>  push dword %1
+    14 000001A0 FF35[04000000]      <1>  push dword [STDOutputHandle]
+    15 000001A6 E8(00000000)        <1>  call WriteConsoleA
+   138 000001AB E920FFFFFF                  jmp     .printf_loop
+   139                                  
+   140                                  .bin:
+   141 000001B0 58                          pop     eax
+   142 000001B1 56                          push    esi
+   143                                  
+   144 000001B2 BF[08000000]                mov     edi, itoaBuff
+   145 000001B7 B901000000                  mov     ecx, 1
+   146 000001BC 30FF                        xor     bh, bh
+   147 000001BE E889FEFFFF                  call    itoa2n
+   148                                  
+   149 000001C3 5E                          pop     esi
+   150                                  
+   151                                      WRITE   itoaBuff, eax
      9                              <1> 
-    10 000001C3 6A00                <1>  push dword 0
-    11 000001C5 68[00000000]        <1>  push numCharsWritten
-    12 000001CA 50                  <1>  push dword %2
-    13 000001CB 68[08000000]        <1>  push dword %1
-    14 000001D0 FF35[04000000]      <1>  push dword [STDOutputHandle]
-    15 000001D6 E8(00000000)        <1>  call WriteConsoleA
-   151 000001DB E9EFFEFFFF                  jmp     .printf_loop
-   152                                  
-   153                                  .oct:
-   154 000001E0 58                          pop     eax
-   155 000001E1 56                          push    esi
-   156                                  
-   157 000001E2 BF[08000000]                mov     edi, itoaBuff
-   158 000001E7 B903000000                  mov     ecx, 3
-   159 000001EC 30FF                        xor     bh, bh
-   160 000001EE E859FEFFFF                  call    itoa2n
-   161                                  
-   162 000001F3 5E                          pop     esi
-   163                                  
-   164                                      WRITE   itoaBuff, eax
+    10 000001C4 6A00                <1>  push dword 0
+    11 000001C6 68[00000000]        <1>  push numCharsWritten
+    12 000001CB 50                  <1>  push dword %2
+    13 000001CC 68[08000000]        <1>  push dword %1
+    14 000001D1 FF35[04000000]      <1>  push dword [STDOutputHandle]
+    15 000001D7 E8(00000000)        <1>  call WriteConsoleA
+   152 000001DC E9EFFEFFFF                  jmp     .printf_loop
+   153                                  
+   154                                  .oct:
+   155 000001E1 58                          pop     eax
+   156 000001E2 56                          push    esi
+   157                                  
+   158 000001E3 BF[08000000]                mov     edi, itoaBuff
+   159 000001E8 B903000000                  mov     ecx, 3
+   160 000001ED 30FF                        xor     bh, bh
+   161 000001EF E858FEFFFF                  call    itoa2n
+   162                                  
+   163 000001F4 5E                          pop     esi
+   164                                  
+   165                                      WRITE   itoaBuff, eax
      9                              <1> 
-    10 000001F4 6A00                <1>  push dword 0
-    11 000001F6 68[00000000]        <1>  push numCharsWritten
-    12 000001FB 50                  <1>  push dword %2
-    13 000001FC 68[08000000]        <1>  push dword %1
-    14 00000201 FF35[04000000]      <1>  push dword [STDOutputHandle]
-    15 00000207 E8(00000000)        <1>  call WriteConsoleA
-   165 0000020C E9BEFEFFFF                  jmp     .printf_loop
-   166                                  
-   167                                  .hex:
-   168 00000211 58                          pop     eax
-   169 00000212 56                          push    esi
-   170                                  
-   171 00000213 BF[08000000]                mov     edi, itoaBuff
-   172 00000218 B904000000                  mov     ecx, 4
-   173 0000021D 30FF                        xor     bh, bh
-   174 0000021F E828FEFFFF                  call    itoa2n
-   175                                  
-   176 00000224 5E                          pop     esi
-   177                                  
-   178                                      WRITE   itoaBuff, eax
+    10 000001F5 6A00                <1>  push dword 0
+    11 000001F7 68[00000000]        <1>  push numCharsWritten
+    12 000001FC 50                  <1>  push dword %2
+    13 000001FD 68[08000000]        <1>  push dword %1
+    14 00000202 FF35[04000000]      <1>  push dword [STDOutputHandle]
+    15 00000208 E8(00000000)        <1>  call WriteConsoleA
+   166 0000020D E9BEFEFFFF                  jmp     .printf_loop
+   167                                  
+   168                                  .hex:
+   169 00000212 58                          pop     eax
+   170 00000213 56                          push    esi
+   171                                  
+   172 00000214 BF[08000000]                mov     edi, itoaBuff
+   173 00000219 B904000000                  mov     ecx, 4
+   174 0000021E 30FF                        xor     bh, bh
+   175 00000220 E827FEFFFF                  call    itoa2n
+   176                                  
+   177 00000225 5E                          pop     esi
+   178                                  
+   179                                      WRITE   itoaBuff, eax
      9                              <1> 
-    10 00000225 6A00                <1>  push dword 0
-    11 00000227 68[00000000]        <1>  push numCharsWritten
-    12 0000022C 50                  <1>  push dword %2
-    13 0000022D 68[08000000]        <1>  push dword %1
-    14 00000232 FF35[04000000]      <1>  push dword [STDOutputHandle]
-    15 00000238 E8(00000000)        <1>  call WriteConsoleA
-   179 0000023D E98DFEFFFF                  jmp     .printf_loop
-   180                                  
-   181                                  .char:
-   182 00000242 58                          pop     eax
-   183 00000243 A2[08000000]                mov     [itoaBuff], al
-   184                                      WRITE   itoaBuff, 1
+    10 00000226 6A00                <1>  push dword 0
+    11 00000228 68[00000000]        <1>  push numCharsWritten
+    12 0000022D 50                  <1>  push dword %2
+    13 0000022E 68[08000000]        <1>  push dword %1
+    14 00000233 FF35[04000000]      <1>  push dword [STDOutputHandle]
+    15 00000239 E8(00000000)        <1>  call WriteConsoleA
+   180 0000023E E98DFEFFFF                  jmp     .printf_loop
+   181                                  
+   182                                  .char:
+   183 00000243 58                          pop     eax
+   184 00000244 A2[08000000]                mov     [itoaBuff], al
+   185                                      WRITE   itoaBuff, 1
      9                              <1> 
-    10 00000248 6A00                <1>  push dword 0
-    11 0000024A 68[00000000]        <1>  push numCharsWritten
-    12 0000024F 6A01                <1>  push dword %2
-    13 00000251 68[08000000]        <1>  push dword %1
-    14 00000256 FF35[04000000]      <1>  push dword [STDOutputHandle]
-    15 0000025C E8(00000000)        <1>  call WriteConsoleA
-   185 00000261 E969FEFFFF                  jmp     .printf_loop
-   186                                  
-   187                                  .str:
-   188 00000266 58                          pop     eax
-   189 00000267 56                          push    esi
-   190                                  
-   191 00000268 89C6                        mov     esi, eax
-   192 0000026A 89C7                        mov     edi, eax
-   193 0000026C E843FEFFFF                  call    strlen
-   194                                  
-   195                                      WRITE   esi, eax
+    10 00000249 6A00                <1>  push dword 0
+    11 0000024B 68[00000000]        <1>  push numCharsWritten
+    12 00000250 6A01                <1>  push dword %2
+    13 00000252 68[08000000]        <1>  push dword %1
+    14 00000257 FF35[04000000]      <1>  push dword [STDOutputHandle]
+    15 0000025D E8(00000000)        <1>  call WriteConsoleA
+   186 00000262 E969FEFFFF                  jmp     .printf_loop
+   187                                  
+   188                                  .str:
+   189 00000267 58                          pop     eax
+   190 00000268 56                          push    esi
+   191                                  
+   192 00000269 89C6                        mov     esi, eax
+   193 0000026B 89C7                        mov     edi, eax
+   194 0000026D E842FEFFFF                  call    strlen
+   195                                  
+   196                                      WRITE   esi, eax
      9                              <1> 
-    10 00000271 6A00                <1>  push dword 0
-    11 00000273 68[00000000]        <1>  push numCharsWritten
-    12 00000278 50                  <1>  push dword %2
-    13 00000279 56                  <1>  push dword %1
-    14 0000027A FF35[04000000]      <1>  push dword [STDOutputHandle]
-    15 00000280 E8(00000000)        <1>  call WriteConsoleA
-   196                                  
-   197 00000285 5E                          pop     esi
-   198                                  
-   199 00000286 E944FEFFFF                  jmp     .printf_loop
-   200                                  
-   201                                  .percent:
-   202 0000028B C605[08000000]25            mov     byte [itoaBuff], '%'
-   203                                      WRITE   itoaBuff, 1
+    10 00000272 6A00                <1>  push dword 0
+    11 00000274 68[00000000]        <1>  push numCharsWritten
+    12 00000279 50                  <1>  push dword %2
+    13 0000027A 56                  <1>  push dword %1
+    14 0000027B FF35[04000000]      <1>  push dword [STDOutputHandle]
+    15 00000281 E8(00000000)        <1>  call WriteConsoleA
+   197                                  
+   198 00000286 5E                          pop     esi
+   199                                  
+   200 00000287 E944FEFFFF                  jmp     .printf_loop
+   201                                  
+   202                                  .percent:
+   203 0000028C C605[08000000]25            mov     byte [itoaBuff], '%'
+   204                                      WRITE   itoaBuff, 1
      9                              <1> 
-    10 00000292 6A00                <1>  push dword 0
-    11 00000294 68[00000000]        <1>  push numCharsWritten
-    12 00000299 6A01                <1>  push dword %2
-    13 0000029B 68[08000000]        <1>  push dword %1
-    14 000002A0 FF35[04000000]      <1>  push dword [STDOutputHandle]
-    15 000002A6 E8(00000000)        <1>  call WriteConsoleA
-   204 000002AB E91FFEFFFF                  jmp     .printf_loop
-   205                                  
-   206                                  .default:
-   207 000002B0 E91AFEFFFF                  jmp     .printf_loop
-   208                                  
-   209                                  ; end of printf
-   210                                  
-   211                                  _start:
-   212                                  
-   213                                      ; GetStdHandle( STD_OUTPUT_HANDLE )
-   214 000002B5 6AF5                        push    dword -11
-   215 000002B7 E8(00000000)                call    GetStdHandle ; returns in eax
-   216 000002BC A3[04000000]                mov     [STDOutputHandle], eax
-   217                                  
-   218 000002C1 6A11                        push    dword 17
-   219 000002C3 68DE000000                  push    dword 0DEh
-   220 000002C8 68[2E030000]                push    dword  str_wr
-   221 000002CD 6A6A                        push    dword 'j'
-   222 000002CF 6A06                        push    dword 6
-   223 000002D1 6841050000                  push    dword 1345
-   224 000002D6 68[E7020000]                push    dword  str_to_printf
-   225 000002DB E8E4FDFFFF                  call    printf
-   226                                  
-   227                                      ; ExitProcess( 0 )
-   228 000002E0 6A00                        push    dword 0   
-   229 000002E2 E8(00000000)                call    ExitProcess
-   230                                  
-   231 000002E7 5052494E5446464646-         str_to_printf db "PRINTFFFF %d was not %b and %c so it is %s and %x but not %o (not 0)", 10, "a", 0
-   231 000002F0 20256420776173206E-
-   231 000002F9 6F7420256220616E64-
-   231 00000302 20256320736F206974-
-   231 0000030B 20697320257320616E-
-   231 00000314 642025782062757420-
-   231 0000031D 6E6F7420256F20286E-
-   231 00000326 6F742030290A6100   
-   232 0000032E 736F6D652073747200          str_wr        db "some str", 0
-   233                                  
-   234 00000337 4445420A00                  DEBSTR db "DEB", 10, 0
+    10 00000293 6A00                <1>  push dword 0
+    11 00000295 68[00000000]        <1>  push numCharsWritten
+    12 0000029A 6A01                <1>  push dword %2
+    13 0000029C 68[08000000]        <1>  push dword %1
+    14 000002A1 FF35[04000000]      <1>  push dword [STDOutputHandle]
+    15 000002A7 E8(00000000)        <1>  call WriteConsoleA
+   205 000002AC E91FFEFFFF                  jmp     .printf_loop
+   206                                  
+   207                                  .default:
+   208 000002B1 E91AFEFFFF                  jmp     .printf_loop
+   209                                  
+   210                                  ; end of printf
+   211                                  
+   212                                  _start:
+   213                                  
+   214                                      ; GetStdHandle( STD_OUTPUT_HANDLE )
+   215 000002B6 6AF5                        push    dword -11
+   216 000002B8 E8(00000000)                call    GetStdHandle ; returns in eax
+   217 000002BD A3[04000000]                mov     [STDOutputHandle], eax
+   218                                  
+   219 000002C2 6A11                        push    dword 17
+   220 000002C4 68DE000000                  push    dword 0DEh
+   221 000002C9 68[2F030000]                push    dword  str_wr
+   222 000002CE 6A6A                        push    dword 'j'
+   223 000002D0 6A06                        push    dword 6
+   224 000002D2 6841050000                  push    dword 1345
+   225 000002D7 68[E8020000]                push    dword  str_to_printf
+   226 000002DC E8E4FDFFFF                  call    printf
+   227                                  
+   228                                      ; ExitProcess( 0 )
+   229 000002E1 6A00                        push    dword 0   
+   230 000002E3 E8(00000000)                call    ExitProcess
+   231                                  
+   232 000002E8 5052494E5446464646-         str_to_printf db "PRINTFFFF %d was not %b and %c so it is %s and %x but not %o (not 0)", 10, "a", 0
+   232 000002F1 20256420776173206E-
+   232 000002FA 6F7420256220616E64-
+   232 00000303 20256320736F206974-
+   232 0000030C 20697320257320616E-
+   232 00000315 642025782062757420-
+   232 0000031E 6E6F7420256F20286E-
+   232 00000327 6F742030290A6100   
+   233 0000032F 736F6D652073747200          str_wr        db "some str", 0
+   234                                  
+   235 00000338 4445420A00                  DEBSTR db "DEB", 10, 0

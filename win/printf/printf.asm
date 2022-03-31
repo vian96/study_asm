@@ -49,6 +49,7 @@ strlen:
 
     sub     edi, ebx     
     mov     eax, edi     
+    dec eax
 
     ret         
 ; end of strlen 
