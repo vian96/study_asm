@@ -14,7 +14,8 @@ extern WriteFile
 %macro WRITE 2
     mov     r8, %2
     mov     rdx, %1
-    sub     rsp, 0x100
+    ; push    qword 0
+    sub     rsp, 0x98
 
 ; I DONT KNOW WHY THIS IS NEEDED
 ; But windows sometimes resets this
@@ -24,9 +25,8 @@ extern WriteFile
 
     mov     rcx, rax
     mov     r9, numCharsWritten
-    push    qword 0
     call    WriteFile
-    add     rsp, 0x100
+    add     rsp, 0x98
 %endmacro ; WRITE
 
 %define DEB     WRITE DEBSTR, 4
@@ -132,17 +132,13 @@ printf:
 
     sub     al, 'b'
     xor     rbx, rbx
-
-
-    
-;    mov     bl, al
-
-;    jmp     qword [8*rbx + .jmp_table]
+    mov     bl, al
+    mov     rax, rbx
 
     ; rax is var
     lea     rbx, [rel .jmp_table] 
     mov     eax, [rbx + rax*4] 
-    sub     rbx, .jmp_table wrt ..imagebase 
+    sub     rbx, .jmp_table     wrt ..imagebase 
     add     rbx, rax 
     jmp     rbx 
 
@@ -151,11 +147,11 @@ printf:
     dd      .bin                wrt ..imagebase  
     dd      .char               wrt ..imagebase  
     dd      .dec                wrt ..imagebase  
-    dd      10 dup(.default)    wrt ..imagebase  
+    dd      10 dup(.default     wrt ..imagebase)      
     dd      .oct                wrt ..imagebase  
-    dd      3 dup(.default)     wrt ..imagebase  
+    dd      3 dup(.default      wrt ..imagebase)       
     dd      .str                wrt ..imagebase  
-    dd      4 dup(.default)     wrt ..imagebase  
+    dd      4 dup(.default      wrt ..imagebase)  
     dd      .hex                wrt ..imagebase  
 
 .dec:

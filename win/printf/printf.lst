@@ -1,4 +1,4 @@
-     1                                  global _start
+     1                                  global printf
      2                                  
      3                                  extern GetStdHandle
      4                                  extern WriteConsoleA
@@ -452,34 +452,14 @@
    241                                  
    242                                  ; end of printf
    243                                  
-   244                                  _start:
-   245                                  
-   246                                      ; GetStdHandle( STD_OUTPUT_HANDLE )
-   247 000002F0 6AF5                        push    dword -11
-   248 000002F2 E8(00000000)                call    GetStdHandle ; returns in eax
-   249 000002F7 A3[04000000]                mov     [STDOutputHandle], eax
-   250                                  
-   251 000002FC 6A11                        push    dword 17
-   252 000002FE 68DE000000                  push    dword 0DEh
-   253 00000303 68[69030000]                push    dword  str_wr
-   254 00000308 6A6A                        push    dword 'j'
-   255 0000030A 6A06                        push    dword 6
-   256 0000030C 6841050000                  push    dword 1345
-   257 00000311 68[22030000]                push    dword  str_to_printf
-   258 00000316 E8AAFDFFFF                  call    printf
-   259                                  
-   260                                      ; ExitProcess( 0 )
-   261 0000031B 6A00                        push    dword 0   
-   262 0000031D E8(00000000)                call    ExitProcess
-   263                                  
-   264 00000322 5052494E5446464646-         str_to_printf db "PRINTFFFF %d was not %b and %c so it is %s and %x but not %o (not 0)", 10, "a", 0
-   264 0000032B 20256420776173206E-
-   264 00000334 6F7420256220616E64-
-   264 0000033D 20256320736F206974-
-   264 00000346 20697320257320616E-
-   264 0000034F 642025782062757420-
-   264 00000358 6E6F7420256F20286E-
-   264 00000361 6F742030290A6100   
-   265 00000369 736F6D652073747200          str_wr        db "some str", 0
-   266                                  
-   267 00000372 4445420A00                  DEBSTR db "DEB", 10, 0
+   244 000002F0 5052494E5446464646-         str_to_printf db "PRINTFFFF %d was not %b and %c so it is %s and %x but not %o (not 0)", 10, "a", 0
+   244 000002F9 20256420776173206E-
+   244 00000302 6F7420256220616E64-
+   244 0000030B 20256320736F206974-
+   244 00000314 20697320257320616E-
+   244 0000031D 642025782062757420-
+   244 00000326 6E6F7420256F20286E-
+   244 0000032F 6F742030290A6100   
+   245 00000337 736F6D652073747200          str_wr        db "some str", 0
+   246                                  
+   247 00000340 4445420A00                  DEBSTR db "DEB", 10, 0

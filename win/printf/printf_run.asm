@@ -1,4 +1,4 @@
-global printf
+global _start
 
 extern GetStdHandle
 extern WriteConsoleA
@@ -240,6 +240,26 @@ printf:
     jmp     .printf_loop
 
 ; end of printf
+
+_start:
+
+    ; GetStdHandle( STD_OUTPUT_HANDLE )
+    push    dword -11
+    call    GetStdHandle ; returns in eax
+    mov     [STDOutputHandle], eax
+
+    push    dword 17
+    push    dword 0DEh
+    push    dword  str_wr
+    push    dword 'j'
+    push    dword 6
+    push    dword 1345
+    push    dword  str_to_printf
+    call    printf
+
+    ; ExitProcess( 0 )
+    push    dword 0   
+    call    ExitProcess
 
     str_to_printf db "PRINTFFFF %d was not %b and %c so it is %s and %x but not %o (not 0)", 10, "a", 0
     str_wr        db "some str", 0
