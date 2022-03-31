@@ -55,6 +55,17 @@ strlen:
 ; end of strlen 
 
 ;------------------------------------------------
+; MACRO FOR PRINTF
+; Writes ecx symbols from esi and see code, its simple
+;------------------------------------------------
+%macro WRITE_BUF 0
+    WRITE edi, ecx
+    xor ecx, ecx
+    mov edi, esi
+    add edi, 2      ; to move from % to actual string
+%endmacro ; WRITE_BUF
+
+;------------------------------------------------
 ; PRINTF
 ; 
 ; CHANGED: esi, eax, dl, ecx (ret), ebx
@@ -66,6 +77,7 @@ printf:
     pop     esi
     mov     edi, esi
     dec     esi      ; useful because you do not need to inc it befoure calling loop
+    xor ecx, ecx
 
     .printf_loop:
         inc     esi
@@ -76,11 +88,11 @@ printf:
         cmp     al, 0
         je      .ret
 
-        WRITE   esi, 1
-        
+        inc ecx
         jmp     .printf_loop
 
 .ret:
+    WRITE_BUF
     mov     ecx, [ret_addr]
     push    ecx
     ret
@@ -92,6 +104,8 @@ printf:
     jmp     .default
 
 .codes:
+    WRITE_BUF
+
     inc     esi
     mov     al, [esi]
 
@@ -127,67 +141,83 @@ printf:
 .dec:
     pop     eax
     push    esi
+    push    edi
+    push    ecx
 
     mov     edi, itoaBuff
     mov     ecx, 10
     call    itoa
-
-    pop     esi
-
     WRITE   itoaBuff, eax
+
+    pop     ecx
+    pop     edi
+    pop     esi
     jmp     .printf_loop
 
 .bin:
     pop     eax
     push    esi
+    push    edi
+    push    ecx
 
     mov     edi, itoaBuff
     mov     ecx, 1
     xor     bh, bh
     call    itoa2n
-
-    pop     esi
-
     WRITE   itoaBuff, eax
+
+    pop     ecx
+    pop     edi
+    pop     esi
     jmp     .printf_loop
 
 .oct:
     pop     eax
     push    esi
+    push    edi
+    push    ecx
 
     mov     edi, itoaBuff
     mov     ecx, 3
     xor     bh, bh
     call    itoa2n
-
-    pop     esi
-
     WRITE   itoaBuff, eax
+
+    pop     ecx
+    pop     edi
+    pop     esi
     jmp     .printf_loop
 
 .hex:
     pop     eax
     push    esi
+    push    edi
+    push    ecx
 
     mov     edi, itoaBuff
     mov     ecx, 4
     xor     bh, bh
     call    itoa2n
-
-    pop     esi
-
     WRITE   itoaBuff, eax
+
+    pop     ecx
+    pop     edi
+    pop     esi
     jmp     .printf_loop
 
 .char:
     pop     eax
     mov     [itoaBuff], al
+    push    ecx
     WRITE   itoaBuff, 1
+    pop     ecx
     jmp     .printf_loop
 
 .str:
     pop     eax
     push    esi
+    push    edi
+    push    ecx
 
     mov     esi, eax
     mov     edi, eax
@@ -195,6 +225,8 @@ printf:
 
     WRITE   esi, eax
 
+    pop     ecx
+    pop     edi
     pop     esi
 
     jmp     .printf_loop
