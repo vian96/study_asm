@@ -1,3 +1,3 @@
 nasm -f win64 printf.asm -o printf.obj -l printf.lst
 
-GoLink.exe  /console /entry _start printf.obj kernel32.dll  
+GoLink.exe  /entry _start /console kernel32.dll user32.dll printf.obj

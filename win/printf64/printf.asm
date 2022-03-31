@@ -3,16 +3,30 @@ global _start
 extern GetStdHandle
 extern WriteConsoleA
 extern ExitProcess
+extern WriteFile
 
+;------------------------------------------------
 ; First arg is str and second is length
+; WARNING: 
+; RDX and R8 ARE REWRITEN BEFORE CALL
+; It may break if you call write(sth, rdx) 
+; CHANGED: rdx, r8, r9, rcx
 %macro WRITE 2
-; WriteConsole( STD_OUTPUT_HANDLE, strbuffer, numofchar, numwritten, double 0)
-        push    dword 0         
-        push    numCharsWritten
-        push    dword %2    
-        push    dword %1             
-        push    dword    [STDOutputHandle]
-        call    WriteConsoleA
+    mov     r8, %2
+    mov     rdx, %1
+    sub     rsp, 0x100
+
+; I DONT KNOW WHY THIS IS NEEDED
+; But windows sometimes resets this
+; GetStdHandle( STD_OUTPUT_HANDLE )
+    mov     rcx, -11
+    call    GetStdHandle ; returns in rax
+
+    mov     rcx, rax
+    mov     r9, numCharsWritten
+    push    qword 0
+    call    WriteFile
+    add     rsp, 0x100
 %endmacro ; WRITE
 
 %define DEB     WRITE DEBSTR, 4
@@ -22,11 +36,11 @@ section .data
         strLen:  equ $-str
 
 section .bss
-        numCharsWritten     resd 1
-        STDOutputHandle     resd 1
+        numCharsWritten     resq 1
+        STDOutputHandle     resq 1
 
         itoaBuff            resb 40 ; because 32 + some buffer space
-        ret_addr            resd 1
+        ret_addr            resq 1
 
 
 section .text
@@ -49,18 +63,18 @@ strlen:
 
     sub     rdi, rbx     
     mov     rax, rdi     
-    dec rax
+    dec     rax
 
     ret         
 ; end of strlen 
 
 ;------------------------------------------------
 ; MACRO FOR PRINTF
-; Writes ecx symbols from rsi and see code, its simple
+; Writes rcx symbols from rsi and see code, its simple
 ;------------------------------------------------
 %macro WRITE_BUF 0
-    WRITE rdi, ecx
-    xor ecx, ecx
+    WRITE rdi, rcx
+    xor rcx, rcx
     mov rdi, rsi
     add rdi, 2      ; to move from % to actual string
 %endmacro ; WRITE_BUF
@@ -68,17 +82,16 @@ strlen:
 ;------------------------------------------------
 ; PRINTF
 ; 
-; CHANGED: rsi, eax, dl, ecx (ret), ebx
+; CHANGED: rsi, rax, dl, rcx (ret), rbx
 ;------------------------------------------------
 printf:
-    push r9
     ; si is where we read string
-    pop     ecx
-    mov     [ret_addr], ecx
+    pop     rcx
+    mov     [ret_addr], rcx
     pop     rsi
     mov     rdi, rsi
     dec     rsi      ; useful because you do not need to inc it befoure calling loop
-    xor ecx, ecx
+    xor rcx, rcx
 
     .printf_loop:
         inc     rsi
@@ -89,13 +102,13 @@ printf:
         cmp     al, 0
         je      .ret
 
-        inc ecx
+        inc rcx
         jmp     .printf_loop
 
 .ret:
     WRITE_BUF
-    mov     ecx, [ret_addr]
-    push    ecx
+    mov     rcx, [ret_addr]
+    push    rcx
     ret
 
 .jmp_percent:
@@ -118,115 +131,118 @@ printf:
     jg      .jmp_default    ; more than 'x'
 
     sub     al, 'b'
-    xor     ebx, ebx
-    mov     bl, al
-    ; ebx = 4*al
-    add     ebx, ebx
-    add     ebx, ebx
+    xor     rbx, rbx
+;    mov     bl, al
 
-    mov     ebx, [ebx + .jmp_table]
-    jmp     ebx
+;    jmp     qword [8*rbx + .jmp_table]
+
+    ; rax is var
+    lea     rbx, [rel .jmp_table] 
+    mov     eax, [rbx + rax*4] 
+    sub     rbx, .jmp_table wrt ..imagebase 
+    add     rbx, rax 
+    jmp     rbx 
 
 .jmp_table:
     ; hardcoded jmp table
-    dd      .bin 
-    dd      .char
-    dd      .dec
-    dd      10 dup(.default)
-    dd      .oct
-    dd      3 dup(.default)
-    dd      .str
-    dd      4 dup(.default)
-    dd      .hex
+    dd      .bin                wrt ..imagebase  
+    dd      .char               wrt ..imagebase  
+    dd      .dec                wrt ..imagebase  
+    dd      10 dup(.default)    wrt ..imagebase  
+    dd      .oct                wrt ..imagebase  
+    dd      3 dup(.default)     wrt ..imagebase  
+    dd      .str                wrt ..imagebase  
+    dd      4 dup(.default)     wrt ..imagebase  
+    dd      .hex                wrt ..imagebase  
 
 .dec:
-    pop     eax
+    pop     rax
     push    rsi
     push    rdi
-    push    ecx
+    push    rcx
 
     mov     rdi, itoaBuff
-    mov     ecx, 10
+    mov     rcx, 10
     call    itoa
-    WRITE   itoaBuff, eax
+    WRITE   itoaBuff, rax
 
-    pop     ecx
+    pop     rcx
     pop     rdi
     pop     rsi
     jmp     .printf_loop
 
 .bin:
-    pop     eax
+    pop     rax
     push    rsi
     push    rdi
-    push    ecx
+    push    rcx
 
     mov     rdi, itoaBuff
-    mov     ecx, 1
+    mov     rcx, 1
     xor     bh, bh
     call    itoa2n
-    WRITE   itoaBuff, eax
+    WRITE   itoaBuff, rax
 
-    pop     ecx
+    pop     rcx
     pop     rdi
     pop     rsi
     jmp     .printf_loop
 
 .oct:
-    pop     eax
+    pop     rax
     push    rsi
     push    rdi
-    push    ecx
+    push    rcx
 
     mov     rdi, itoaBuff
-    mov     ecx, 3
+    mov     rcx, 3
     xor     bh, bh
     call    itoa2n
-    WRITE   itoaBuff, eax
+    WRITE   itoaBuff, rax
 
-    pop     ecx
+    pop     rcx
     pop     rdi
     pop     rsi
     jmp     .printf_loop
 
 .hex:
-    pop     eax
+    pop     rax
     push    rsi
     push    rdi
-    push    ecx
+    push    rcx
 
     mov     rdi, itoaBuff
-    mov     ecx, 4
+    mov     rcx, 4
     xor     bh, bh
     call    itoa2n
-    WRITE   itoaBuff, eax
+    WRITE   itoaBuff, rax
 
-    pop     ecx
+    pop     rcx
     pop     rdi
     pop     rsi
     jmp     .printf_loop
 
 .char:
-    pop     eax
+    pop     rax
     mov     [itoaBuff], al
-    push    ecx
+    push    rcx
     WRITE   itoaBuff, 1
-    pop     ecx
+    pop     rcx
     jmp     .printf_loop
 
 .str:
-    pop     eax
+    pop     rax
     push    rsi
     push    rdi
-    push    ecx
+    push    rcx
 
-    mov     rsi, eax
-    mov     rdi, eax
+    mov     rsi, rax
+    mov     rdi, rax
     call    strlen
 
-    WRITE   rsi, eax
+    WRITE   rsi, rax
 
-    pop     ecx
+    pop     rcx
     pop     rdi
     pop     rsi
 
@@ -243,23 +259,24 @@ printf:
 ; end of printf
 
 _start:
+    DEB
+    DEB
+    DEB
+    DEB
+    DEB
 
-    ; GetStdHandle( STD_OUTPUT_HANDLE )
-    push    dword -11
-    call    GetStdHandle ; returns in eax
-    mov     [STDOutputHandle], eax
 
-    push    dword 17
-    push    dword 0DEh
-    push    dword  str_wr
-    push    dword 'j'
-    push    dword 6
-    push    dword 1345
-    push    dword  str_to_printf
+    push    qword 17
+    push    qword 0DEh
+    push    qword  str_wr
+    push    qword 'j'
+    push    qword 6
+    push    qword 1345
+    push    qword  str_to_printf
     call    printf
 
     ; ExitProcess( 0 )
-    push    dword 0   
+    mov     rcx, 0   
     call    ExitProcess
 
     str_to_printf db "PRINTFFFF %d was not %b and %c so it is %s and %x but not %o (not 0)", 10, "a", 0

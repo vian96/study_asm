@@ -34,12 +34,12 @@ itoa:
     jmp .loop
 
 .end_loop:
-    mov ecx, rdi
-    sub ecx, rsi
-    shr ecx, 1
+    mov rcx, rdi
+    sub rcx, rsi
+    shr rcx, 1      ; number of loops
     mov byte [rdi], 0
-    mov edx, rdi
-    sub edx, rsi
+    mov rdx, rdi
+    sub rdx, rsi    ; gets lenth of string
     dec rdi
 
     .reverse_ans:
@@ -51,7 +51,7 @@ itoa:
         inc rsi
     loop .reverse_ans
 
-    mov eax, edx ; returned value is length
+    mov rax, rdx ; returned value is length
     ret
 
 ; end of itoa
@@ -99,12 +99,12 @@ itoa2n:
 
     ; TODO is it okay to have copypaste like this?
     .end_loop:
-    mov ecx, rdi
-    sub ecx, rsi
-    shr ecx, 1
+    mov rcx, rdi
+    sub rcx, rsi
+    shr rcx, 1      ; number of loop
     mov byte [rdi], 0
-    mov edx, rdi
-    sub edx, rsi
+    mov rdx, rdi
+    sub rdx, rsi    ; returned value is length
     dec rdi
 
     .reverse:
@@ -116,7 +116,7 @@ itoa2n:
         inc rsi
     loop .reverse
 
-    mov eax, edx ; returned value is length
+    mov rax, rdx ; returned value is length
     ret
 
 ; end of itoa2n
