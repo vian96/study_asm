@@ -132,6 +132,9 @@ printf:
 
     sub     al, 'b'
     xor     rbx, rbx
+
+
+    
 ;    mov     bl, al
 
 ;    jmp     qword [8*rbx + .jmp_table]
