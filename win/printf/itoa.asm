@@ -1,10 +1,10 @@
 ;------------------------------------------------
 ; ITOA
 ; Translates unsigned bx number to str pointed by di with base cx and places $ at the end
-;   rdi - ptr of str to be written
+;   edi - ptr of str to be written
 ;   ecx - base
 ;   eax - number to be translated
-; CHANGED: ebx, edx, rdi, rsi
+; CHANGED: ebx, edx, edi, esi
 ; RETURNED: eax - length
 ;------------------------------------------------
 itoa:
@@ -12,13 +12,13 @@ itoa:
     jg .main_itoa
 
     mov dl, [eax + XlatTable]
-    mov [rdi], dl
-    mov byte [rdi+1], 0
+    mov [edi], dl
+    mov byte [edi+1], 0
     mov eax, 1
     ret
 
 .main_itoa:
-    mov rsi, rdi
+    mov esi, edi
 
     .loop:
         mov edx, 0
@@ -26,29 +26,29 @@ itoa:
         mov ebx, edx
         mov dl, [ebx + XlatTable]
 
-        mov [rdi], dl
-        inc rdi
+        mov [edi], dl
+        inc edi
 
         cmp eax, 0
         je .end_loop
     jmp .loop
 
 .end_loop:
-    mov ecx, rdi
-    sub ecx, rsi
+    mov ecx, edi
+    sub ecx, esi
     shr ecx, 1
-    mov byte [rdi], 0
-    mov edx, rdi
-    sub edx, rsi
-    dec rdi
+    mov byte [edi], 0
+    mov edx, edi
+    sub edx, esi
+    dec edi
 
     .reverse_ans:
-        mov al, [rdi]
-        xchg [rsi], al
-        mov [rdi], al
+        mov al, [edi]
+        xchg [esi], al
+        mov [edi], al
 
-        dec rdi
-        inc rsi
+        dec edi
+        inc esi
     loop .reverse_ans
 
     mov eax, edx ; returned value is length
@@ -73,13 +73,13 @@ itoa2n:
     jg .main_itoa2n
 
     mov dl, [eax + XlatTable]
-    mov [rdi], dl
-    mov byte [rdi+1], 0
+    mov [edi], dl
+    mov byte [edi+1], 0
     mov eax, 1
     ret
 
 .main_itoa2n:
-    mov rsi, rdi
+    mov esi, edi
     mov edx, 1
     shl edx, cl
     dec edx                  ; dx = 2^cl - 1
@@ -90,8 +90,8 @@ itoa2n:
         shr eax, cl          ; ax = ax / 2^cl
 
         mov bl, [ebx + XlatTable]
-        mov [rdi], bl
-        inc rdi
+        mov [edi], bl
+        inc edi
 
         cmp eax, 0
         je .end_loop
@@ -99,21 +99,21 @@ itoa2n:
 
     ; TODO is it okay to have copypaste like this?
     .end_loop:
-    mov ecx, rdi
-    sub ecx, rsi
+    mov ecx, edi
+    sub ecx, esi
     shr ecx, 1
-    mov byte [rdi], 0
-    mov edx, rdi
-    sub edx, rsi
-    dec rdi
+    mov byte [edi], 0
+    mov edx, edi
+    sub edx, esi
+    dec edi
 
     .reverse:
-        mov al, [rdi]
-        xchg [rsi], al
-        mov [rdi], al
+        mov al, [edi]
+        xchg [esi], al
+        mov [edi], al
 
-        dec rdi
-        inc rsi
+        dec edi
+        inc esi
     loop .reverse
 
     mov eax, edx ; returned value is length

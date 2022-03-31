@@ -35,54 +35,53 @@ section .text
 
 ;------------------------------------------------
 ; STRLEN
-; rdi - source of str
-; CHANGED: rcx, rdi, rax, rbx
-; RETURN: rax - len
+; edi - source of str
+; CHANGED: ecx, edi, eax, ebx
+; RETURN: eax - len
 ;------------------------------------------------
 strlen:
     ; TODO check flags of direction
-    mov     rbx, rdi
+    mov     ebx, edi
     xor     al, al  
     mov     ecx, 0xffffffff
 
-    repne   scasb   ; while [rdi] != al
+    repne   scasb   ; while [edi] != al
 
-    sub     rdi, rbx     
-    mov     rax, rdi     
-    dec rax
+    sub     edi, ebx     
+    mov     eax, edi     
+    dec eax
 
     ret         
 ; end of strlen 
 
 ;------------------------------------------------
 ; MACRO FOR PRINTF
-; Writes ecx symbols from rsi and see code, its simple
+; Writes ecx symbols from esi and see code, its simple
 ;------------------------------------------------
 %macro WRITE_BUF 0
-    WRITE rdi, ecx
+    WRITE edi, ecx
     xor ecx, ecx
-    mov rdi, rsi
-    add rdi, 2      ; to move from % to actual string
+    mov edi, esi
+    add edi, 2      ; to move from % to actual string
 %endmacro ; WRITE_BUF
 
 ;------------------------------------------------
 ; PRINTF
 ; 
-; CHANGED: rsi, eax, dl, ecx (ret), ebx
+; CHANGED: esi, eax, dl, ecx (ret), ebx
 ;------------------------------------------------
 printf:
-    push r9
     ; si is where we read string
     pop     ecx
     mov     [ret_addr], ecx
-    pop     rsi
-    mov     rdi, rsi
-    dec     rsi      ; useful because you do not need to inc it befoure calling loop
+    pop     esi
+    mov     edi, esi
+    dec     esi      ; useful because you do not need to inc it befoure calling loop
     xor ecx, ecx
 
     .printf_loop:
-        inc     rsi
-        mov     al, [rsi]
+        inc     esi
+        mov     al, [esi]
         cmp     al, '%'
         je      .codes
 
@@ -107,8 +106,8 @@ printf:
 .codes:
     WRITE_BUF
 
-    inc     rsi
-    mov     al, [rsi]
+    inc     esi
+    mov     al, [esi]
 
     cmp     al, '%'
     je      .jmp_percent
@@ -141,69 +140,69 @@ printf:
 
 .dec:
     pop     eax
-    push    rsi
-    push    rdi
+    push    esi
+    push    edi
     push    ecx
 
-    mov     rdi, itoaBuff
+    mov     edi, itoaBuff
     mov     ecx, 10
     call    itoa
     WRITE   itoaBuff, eax
 
     pop     ecx
-    pop     rdi
-    pop     rsi
+    pop     edi
+    pop     esi
     jmp     .printf_loop
 
 .bin:
     pop     eax
-    push    rsi
-    push    rdi
+    push    esi
+    push    edi
     push    ecx
 
-    mov     rdi, itoaBuff
+    mov     edi, itoaBuff
     mov     ecx, 1
     xor     bh, bh
     call    itoa2n
     WRITE   itoaBuff, eax
 
     pop     ecx
-    pop     rdi
-    pop     rsi
+    pop     edi
+    pop     esi
     jmp     .printf_loop
 
 .oct:
     pop     eax
-    push    rsi
-    push    rdi
+    push    esi
+    push    edi
     push    ecx
 
-    mov     rdi, itoaBuff
+    mov     edi, itoaBuff
     mov     ecx, 3
     xor     bh, bh
     call    itoa2n
     WRITE   itoaBuff, eax
 
     pop     ecx
-    pop     rdi
-    pop     rsi
+    pop     edi
+    pop     esi
     jmp     .printf_loop
 
 .hex:
     pop     eax
-    push    rsi
-    push    rdi
+    push    esi
+    push    edi
     push    ecx
 
-    mov     rdi, itoaBuff
+    mov     edi, itoaBuff
     mov     ecx, 4
     xor     bh, bh
     call    itoa2n
     WRITE   itoaBuff, eax
 
     pop     ecx
-    pop     rdi
-    pop     rsi
+    pop     edi
+    pop     esi
     jmp     .printf_loop
 
 .char:
@@ -216,19 +215,19 @@ printf:
 
 .str:
     pop     eax
-    push    rsi
-    push    rdi
+    push    esi
+    push    edi
     push    ecx
 
-    mov     rsi, eax
-    mov     rdi, eax
+    mov     esi, eax
+    mov     edi, eax
     call    strlen
 
-    WRITE   rsi, eax
+    WRITE   esi, eax
 
     pop     ecx
-    pop     rdi
-    pop     rsi
+    pop     edi
+    pop     esi
 
     jmp     .printf_loop
 
