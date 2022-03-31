@@ -1,16 +1,29 @@
-     1                                  extern print
+     1                                  extern Printf
      2                                  extern ExitProcess
      3                                  
      4                                  global _start
      5                                  
      6                                  section .data
-     7                                  
-     8                                  section .text
+     7 00000000 74686973206973206E-         str_to: db "this is not the test from %d %o %c %s", 10, 0
+     7 00000009 6F7420746865207465-
+     7 00000012 73742066726F6D2025-
+     7 0000001B 6420256F2025632025-
+     7 00000024 730A00             
+     8 00000027 62757420692077696C-         str_in: db "but i will say hello", 0
+     8 00000030 6C207361792068656C-
+     8 00000039 6C6F00             
      9                                  
-    10                                  _start:
-    11 00000000 E8(00000000)                call print
-    12                                  
-    13                                      ; ExitProcess( 0 )
-    14 00000005 6A00                        push    dword 0   
-    15 00000007 E8(00000000)                call    ExitProcess
-    16                                      
+    10                                  section .text
+    11                                  
+    12                                  _start:
+    13 00000000 68[27000000]                push str_in
+    14 00000005 6A6A                        push 'j'
+    15 00000007 6A3F                        push 63
+    16 00000009 683E050000                  push 1342
+    17 0000000E 68[00000000]                push str_to
+    18 00000013 E8(00000000)                call Printf
+    19                                  
+    20                                      ; ExitProcess( 0 )
+    21 00000018 6A00                        push    dword 0   
+    22 0000001A E8(00000000)                call    ExitProcess
+    23                                      

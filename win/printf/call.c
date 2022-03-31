@@ -1,7 +1,7 @@
 extern void printf (const char *str, ...);
 
 int main() {
-    printf("Call!!!\n");
+    printf("This is the test %c %s %x but %o with %%\n", 'I', "will not", 0xDE, 31, 5);
     return 0;
 }
 
