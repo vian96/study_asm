@@ -10,13 +10,13 @@
     10                                          push    dword 0         
     11                                          push    numCharsWritten
     12                                          push    dword %2    
-    13                                          push    dword %1             
+    13                                          push    qword %1             
     14                                          push    dword    [STDOutputHandle]
     15                                          call    WriteConsoleA
     16                                  %endmacro ; WRITE
     17                                  
     18                                  section .data
-    19 00000000 78656C6C6F2C20776F-             str:     db 'xello, world!', 0x0D, 0x0A, 0 ; \r\n\0
+    19 00000000 4B656C6C6F2C20776F-             str:     db 'Kello, world!', 0x0D, 0x0A, 0 ; \r\n\0
     19 00000009 726C64210D0A00     
     20                                          strLen:  equ $-str
     21                                  
@@ -31,18 +31,19 @@
     30                                          ; GetStdHandle( STD_OUTPUT_HANDLE )
     31 00000000 6AF5                            push    dword -11
     32 00000002 E8(00000000)                    call    GetStdHandle ; returns in eax
-    33 00000007 A3[04000000]                    mov [STDOutputHandle], eax
+    33 00000007 890425[04000000]                mov [STDOutputHandle], eax
     34                                  
-    35                                          WRITE str, strLen
-     9                              <1> 
-    10 0000000C 6A00                <1>  push dword 0
-    11 0000000E 68[00000000]        <1>  push numCharsWritten
-    12 00000013 6A10                <1>  push dword %2
-    13 00000015 68[00000000]        <1>  push dword %1
-    14 0000001A FF35[04000000]      <1>  push dword [STDOutputHandle]
-    15 00000020 E8(00000000)        <1>  call WriteConsoleA
-    36                                  
-    37                                          ; ExitProcess( 0 )
-    38 00000025 6A00                            push    dword 0   
-    39 00000027 E8(00000000)                    call    ExitProcess
-    40                                          
+    35 0000000E 6A00                            push    dword 0         
+    36 00000010 68[00000000]                    push    numCharsWritten
+    37 00000015 6A10                            push    dword strLen    
+    38 00000017 68[00000000]                    push    qword str             
+    39                                          push    dword    [STDOutputHandle]
+    39          ******************       error: instruction not supported in 64-bit mode
+    40 0000001C E8(00000000)                    call    WriteConsoleA
+    41                                  
+    42                                  ;        WRITE str, strLen
+    43                                  
+    44                                          ; ExitProcess( 0 )
+    45 00000021 6A00                            push    dword 0   
+    46 00000023 E8(00000000)                    call    ExitProcess
+    47                                          

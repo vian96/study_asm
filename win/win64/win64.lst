@@ -1,0 +1,38 @@
+     1                                  global _start
+     2                                  
+     3                                  extern GetStdHandle
+     4                                  extern WriteFile
+     5                                  extern ExitProcess
+     6                                  
+     7                                  section .rodata
+     8                                  
+     9 00000000 48656C6C6F20576F72-     msg db "Hello World!", 0x0d, 0x0a
+     9 00000009 6C64210D0A         
+    10                                  
+    11                                  msg_len equ $-msg
+    12                                  stdout_query equ -11
+    13                                  status equ 0
+    14                                  
+    15                                  section .data
+    16                                  
+    17 00000000 0000                    stdout dw 0
+    18 00000002 0000                    bytesWritten dw 0
+    19                                  
+    20                                  section .text
+    21                                  
+    22                                  _start:
+    23 00000000 48C7C1F5FFFFFF              mov rcx, stdout_query
+    24 00000007 E8(00000000)                call GetStdHandle
+    25 0000000C 48890425[00000000]          mov [stdout], rax
+    26                                  
+    27 00000014 488B0C25[00000000]          mov  rcx, [stdout]
+    28 0000001C 48BA-                       mov  rdx, msg
+    28 0000001E [0000000000000000] 
+    29 00000026 41B80E000000                mov  r8, msg_len
+    30 0000002C 49B9-                       mov  r9, bytesWritten
+    30 0000002E [0200000000000000] 
+    31 00000036 6A00                        push qword 0
+    32 00000038 E8(00000000)                call WriteFile
+    33                                  
+    34 0000003D B900000000                  mov rcx, status
+    35 00000042 E8(00000000)                call ExitProcess

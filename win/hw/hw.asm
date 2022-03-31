@@ -10,13 +10,13 @@ extern ExitProcess
         push    dword 0         
         push    numCharsWritten
         push    dword %2    
-        push    dword %1             
+        push    qword %1             
         push    dword    [STDOutputHandle]
         call    WriteConsoleA
 %endmacro ; WRITE
 
 section .data
-        str:     db 'xello, world!', 0x0D, 0x0A, 0 ; \r\n\0
+        str:     db 'Kello, world!', 0x0D, 0x0A, 0 ; \r\n\0
         strLen:  equ $-str
 
 section .bss
@@ -32,7 +32,14 @@ _start:
         call    GetStdHandle ; returns in eax
         mov [STDOutputHandle], eax
 
-        WRITE str, strLen
+        push    dword 0         
+        push    numCharsWritten
+        push    dword strLen    
+        push    qword str             
+        push    dword    [STDOutputHandle]
+        call    WriteConsoleA
+
+;        WRITE str, strLen
 
         ; ExitProcess( 0 )
         push    dword 0   
