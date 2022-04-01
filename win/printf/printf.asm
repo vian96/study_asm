@@ -71,6 +71,7 @@ strlen:
 ; CHANGED: esi, eax, dl, ecx (ret), ebx
 ;------------------------------------------------
 printf:
+    ; TODO fix for __cedcl (add esp, n*4)
     ; si is where we read string
     pop     ecx
     mov     [ret_addr], ecx
