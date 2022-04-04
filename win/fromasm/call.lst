@@ -22,8 +22,9 @@
     16 00000009 683E050000                  push 1342
     17 0000000E 68[00000000]                push str_to
     18 00000013 E8(00000000)                call Printf
-    19                                  
-    20                                      ; ExitProcess( 0 )
-    21 00000018 6A00                        push    dword 0   
-    22 0000001A E8(00000000)                call    ExitProcess
-    23                                      
+    19 00000018 83C414                      add esp, 4*5
+    20                                  
+    21                                      ; ExitProcess( 0 )
+    22 0000001B 6A00                        push    dword 0   
+    23 0000001D E8(00000000)                call    ExitProcess
+    24                                      

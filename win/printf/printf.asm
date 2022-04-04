@@ -18,8 +18,6 @@ extern ExitProcess
 %define DEB     WRITE DEBSTR, 4
 
 section .data
-        str:     db 'xello, world!', 0x0D, 0x0A, 0 ; \r\n\0
-        strLen:  equ $-str
 
 section .bss
         numCharsWritten     resd 1
@@ -66,19 +64,45 @@ strlen:
 %endmacro ; WRITE_BUF
 
 ;------------------------------------------------
+; MACRO FOR PRINTF
+; Macro for printing hex, oct and bin
+; Uses the first arg as power
+;------------------------------------------------
+%macro PRINT_2N 1
+    pop     eax
+    push    esi
+    push    edi
+    push    ecx
+    push    edx
+
+    mov     edi, itoaBuff
+    mov     ecx, %1
+    xor     bh, bh
+    call    itoa2n
+    WRITE   itoaBuff, eax
+
+    pop     edx
+    pop     ecx
+    pop     edi
+    pop     esi
+    jmp     .printf_loop
+%endmacro ; PRINT_2N
+
+;------------------------------------------------
 ; PRINTF
 ; 
-; CHANGED: esi, eax, dl, ecx (ret), ebx
+; CHANGED: esi, eax, dl, ecx, ebx, edx
 ;------------------------------------------------
 printf:
-    ; TODO fix for __cedcl (add esp, n*4)
-    ; si is where we read string
+    ; esi is where we read string
+    ; edx is offset of stack for cdecl
+    mov     edx, 4   ; 4 for adresses
     pop     ecx
     mov     [ret_addr], ecx
     pop     esi
     mov     edi, esi
     dec     esi      ; useful because you do not need to inc it befoure calling loop
-    xor ecx, ecx
+    xor     ecx, ecx
 
     .printf_loop:
         inc     esi
@@ -94,6 +118,7 @@ printf:
 
 .ret:
     WRITE_BUF
+    add     esp, edx 
     mov     ecx, [ret_addr]
     push    ecx
     ret
@@ -105,6 +130,7 @@ printf:
     jmp     .default
 
 .codes:
+    add edx, 4
     WRITE_BUF
 
     inc     esi
@@ -120,15 +146,13 @@ printf:
     sub     al, 'b'
     xor     ebx, ebx
     mov     bl, al
-    ; ebx = 4*al
-    add     ebx, ebx
-    add     ebx, ebx
 
-    mov     ebx, [ebx + .jmp_table]
+    mov     ebx, [4*ebx + .jmp_table]
     jmp     ebx
 
+section .data
+; hardcoded jmp table for printf
 .jmp_table:
-    ; hardcoded jmp table
     dd      .bin 
     dd      .char
     dd      .dec
@@ -138,73 +162,36 @@ printf:
     dd      .str
     dd      4 dup(.default)
     dd      .hex
+; end of jmp table for printf
 
+section .text
+; printf
 .dec:
     pop     eax
     push    esi
     push    edi
     push    ecx
+    push    edx
 
     mov     edi, itoaBuff
     mov     ecx, 10
     call    itoa
     WRITE   itoaBuff, eax
 
+    pop     edx
     pop     ecx
     pop     edi
     pop     esi
     jmp     .printf_loop
 
 .bin:
-    pop     eax
-    push    esi
-    push    edi
-    push    ecx
-
-    mov     edi, itoaBuff
-    mov     ecx, 1
-    xor     bh, bh
-    call    itoa2n
-    WRITE   itoaBuff, eax
-
-    pop     ecx
-    pop     edi
-    pop     esi
-    jmp     .printf_loop
+    PRINT_2N 1
 
 .oct:
-    pop     eax
-    push    esi
-    push    edi
-    push    ecx
-
-    mov     edi, itoaBuff
-    mov     ecx, 3
-    xor     bh, bh
-    call    itoa2n
-    WRITE   itoaBuff, eax
-
-    pop     ecx
-    pop     edi
-    pop     esi
-    jmp     .printf_loop
+    PRINT_2N 3
 
 .hex:
-    pop     eax
-    push    esi
-    push    edi
-    push    ecx
-
-    mov     edi, itoaBuff
-    mov     ecx, 4
-    xor     bh, bh
-    call    itoa2n
-    WRITE   itoaBuff, eax
-
-    pop     ecx
-    pop     edi
-    pop     esi
-    jmp     .printf_loop
+    PRINT_2N 4
 
 .char:
     pop     eax
@@ -233,11 +220,13 @@ printf:
     jmp     .printf_loop
 
 .percent:
+    sub     edx, 4
     mov     byte [itoaBuff], '%'
     WRITE   itoaBuff, 1
     jmp     .printf_loop
 
 .default:
+    sub     edx, 4
     jmp     .printf_loop
 
 ; end of printf

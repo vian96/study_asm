@@ -4,5 +4,5 @@ gcc -shared -m32 -o print.dll print.obj
 
 nasm -f win32 call.asm -o call.obj -l call.lst
 
-GoLink.exe  /console /entry _start call.obj kernel32.dll print.dll
+GoLink.exe  /console /nw /entry _start call.obj kernel32.dll print.dll
 

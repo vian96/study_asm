@@ -16,6 +16,7 @@ _start:
     push 1342
     push str_to
     call Printf
+    add esp, 4*5
 
     ; ExitProcess( 0 )
     push    dword 0   
