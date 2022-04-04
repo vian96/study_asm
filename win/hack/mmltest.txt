@@ -1,0 +1,5 @@
+echo See MML documentation at
+echo https://en.wikipedia.org/wiki/Music_Macro_Language
+volume 5.0
+play C8D8E8F8G8A8B8>C8
+echo All done!
