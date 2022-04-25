@@ -49,13 +49,15 @@ convert_pswd proc
         cmp bl, 126
         jg @@ret
         cmp bl, 32
-        jl @@ret
+        jle @@ret
 
         mov bl, ds:[offset lookup_tb + bx]
         mov ds:[di], bl
         inc di
         jmp @@loop
 @@ret:
+    xor bl, bl
+    mov ds:[di], bl
     ret
 convert_pswd endp
 
@@ -68,12 +70,16 @@ main:
     mov dx, offset input_buf
     int 21h
 
+    mov dl, 10
+    mov ah, 02h
+    int 21h
+
     mov di, offset input_buf + 2
     call convert_pswd
 
-    mov ah, 09h
-    mov dx, offset input_buf + 2
-    int 21h
+    ; mov ah, 09h
+    ; mov dx, offset input_buf + 2
+    ; int 21h
 
     mov si, offset password
     mov di, offset input_buf + 2
@@ -98,10 +104,10 @@ main:
     int 21h
 
     greetings db "Hello! You should put password to get access", 10, '$'
-    password  db "6+c%{", 0dh, 0
-    input_buf db 255, 32 dup (0), 10, '$'    ; 255 for number of symbols to read
-    granted   db "Access granted!!", 10, '$'
+    password  db "6+c%{", 0
+    input_buf db 255, 16 dup (0)    ; 255 for number of symbols to read
     failed    db "Wrong password", 10, '$'
+    granted   db "Access granted!!", 10, '$'
     lookup_tb db 32 dup(0), "I.#WFnib@vVm`t;Qwke&$PK87(5?}!ZafXsY=JUTC21D*->Ro\jl]M:0G", '"', ",hLdSur) O%Eq'A|zpgH[+B^c{~y96Nx/_4<3"
 
 end start
