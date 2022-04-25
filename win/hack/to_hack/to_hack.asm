@@ -1,3 +1,11 @@
+;------------------------------------------------
+; THIS PROGRAMM IS TO_HACK
+; It has two exploits:
+;   1 - you can use overflow of input buffer to change string to write
+;       you also have to put space so it is not converted and $ at the end
+;   2 - you can reverse this table to know what password it is
+;------------------------------------------------
+
 .model tiny
 .code
 org 100h
@@ -22,8 +30,7 @@ strncmp proc
         cmp al, 0
         je @@ret
 
-        sub al, ds:[di]
-        cmp al, 0
+        cmp al, ds:[di]
         jne @@ret
 
         inc si
@@ -31,6 +38,7 @@ strncmp proc
     loop @@loop
 
 @@ret:
+    sub al, ds:[di]
     ret
 strncmp endp
 
@@ -39,7 +47,7 @@ strncmp endp
 ; Replaces string from di according to lookup table
 ;   di - str to replace
 ; RET: None
-; CHANGED: 
+; CHANGED: bx, di
 ;------------------------------------------------
 convert_pswd proc
     xor bh, bh
@@ -76,10 +84,6 @@ main:
 
     mov di, offset input_buf + 2
     call convert_pswd
-
-    ; mov ah, 09h
-    ; mov dx, offset input_buf + 2
-    ; int 21h
 
     mov si, offset password
     mov di, offset input_buf + 2
