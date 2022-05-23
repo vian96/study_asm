@@ -1,0 +1,1 @@
+g++ nosse.cpp -o noss -O2 && noss
