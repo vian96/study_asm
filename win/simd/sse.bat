@@ -1,0 +1,1 @@
+g++ sse.cpp -o ss -O2 && ss
